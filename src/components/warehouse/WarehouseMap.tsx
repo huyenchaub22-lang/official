@@ -151,37 +151,6 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick }: War
           <FixedCell label="Stairs" tone="pink" small />
         </div>
       </div>
-
-        {/* Row 3: Office | A9 | A8 | A7 | Packing */}
-        <div className="mt-2 grid grid-cols-[120px_0.6fr_1.4fr_1.6fr_100px] gap-2">
-          <FixedCell label="Office" tone="pink" />
-          {renderZone("A9")}
-          {renderZone("A8")}
-          {renderZone("A7")}
-          <FixedCell label="Packing line" tone="pink" small />
-        </div>
-
-        {/* Row 4: A4 | Elev | A5 | Elev | A6 */}
-        <div className="mt-2 grid grid-cols-[0.8fr_56px_2fr_56px_1fr] gap-2">
-          {renderZone("A4")}
-          <FixedCell label="Elevator" tone="violet" vertical />
-          {renderZone("A5")}
-          <FixedCell label="Elevator" tone="violet" vertical />
-          {renderZone("A6")}
-        </div>
-
-        {/* Row 5: A1 | A2 | A3 */}
-        <div className="mt-2 grid grid-cols-[0.8fr_2.2fr_1fr] gap-2">
-          {renderZone("A1")}
-          {renderZone("A2")}
-          {renderZone("A3")}
-        </div>
-
-        {/* Bottom: Stairs */}
-        <div className="mt-2">
-          <FixedCell label="Stairs" tone="pink" small />
-        </div>
-      </div>
     </div>
   );
 }
