@@ -61,10 +61,10 @@ function WarehousePage() {
             </div>
             <div>
               <h1 className="text-lg font-bold leading-tight text-foreground">
-                Quản lý Layout Kho Xe Honda
+                Quản lý Layout Kho Xe Honda — LOG2
               </h1>
               <p className="text-xs text-muted-foreground">
-                Warehouse Management · {totalCapacity} xe capacity
+                Vehicle Flow Optimizer · {totalCapacity} xe capacity · {state.zones.length} zones
               </p>
             </div>
           </div>
@@ -80,10 +80,13 @@ function WarehousePage() {
         <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
           <Sidebar
             ddps={state.ddps}
+            vehicles={state.vehicles}
             onOpenDDP={(id) => setActiveDDPId(id)}
             activeDDPId={activeDDPId}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            onSelectVin={(vin) => setHistoryVin(vin)}
+            onUploadDDP={state.addDDP}
           />
 
           <div className="space-y-5">
@@ -115,6 +118,7 @@ function WarehousePage() {
         onToggleVin={state.toggleSelectVin}
         onClearLine={state.clearSelection}
         onAutoSelect={state.autoSelect}
+        onComplete={state.completeDDP}
       />
       <VehicleHistoryDrawer vehicle={historyVehicle} onClose={() => setHistoryVin(null)} />
     </div>

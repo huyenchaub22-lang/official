@@ -7,9 +7,11 @@ export type VehicleStatus =
   | "in_receiving"
   | "picked";
 
+export type ZoneStatus = "normal" | "full" | "maintenance";
+
 export interface HistoryEntry {
-  ts: string; // formatted timestamp
-  from: string; // e.g. "—", "RECV", "Z01/L1", "NG", "MAINT"
+  ts: string;
+  from: string;
   to: string;
   note: string;
 }
@@ -32,22 +34,24 @@ export interface Vehicle {
 
 export interface Lane {
   id: string;
-  label: string; // L1..L5
+  label: string;
   capacity: number;
-  // Lanes group vehicles with the same characteristics.
-  // Most vehicles match (modelCode + colorCode); 1-2 may differ due to consolidation.
   primaryModelCode: string;
   primaryColorCode: string;
   vehicleVins: string[];
 }
 
 export interface Zone {
-  id: string; // Z01..Z11
+  id: string; // A1..A13
   label: string;
   capacity: number;
   lanes: Lane[];
-  // a short list of model names dominant in this zone (for distribution card)
   modelNames: string[];
+  status: ZoneStatus;
+  // Maintenance metadata (only when status === "maintenance")
+  maintenanceStart?: string;
+  maintenanceEnd?: string;
+  maintenanceReason?: string;
 }
 
 export interface DDPLineItem {
@@ -61,7 +65,6 @@ export interface DDPLineItem {
   colorHex: string;
   qty: number;
   suggestedZoneId: string;
-  // VINs the user has selected for this line item
   selectedVins: string[];
 }
 
@@ -70,10 +73,12 @@ export type DDPStatus = "waiting" | "processing" | "done";
 export interface DDP {
   id: string;
   carrier: string;
+  carrierCode: string;
   createdAt: string;
   status: DDPStatus;
   totalQty: number;
   items: DDPLineItem[];
+  completedAt?: string;
 }
 
 export interface SpecialArea {
