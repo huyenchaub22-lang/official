@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, History, Layers, X } from "lucide-react";
+import { ArrowLeft, History, Layers, Wrench, X } from "lucide-react";
 import type { Vehicle, Zone } from "@/lib/warehouse/types";
 import { fillColorBgSoft, getFillRatio, getFillTier } from "@/lib/warehouse/fillColors";
 import { COLORS } from "@/lib/warehouse/mockData";
@@ -62,7 +62,9 @@ export function ZoneDetailPanel({ zone, vehiclesInZone, onClose, onShowHistory }
           </button>
         </header>
 
-        {!selectedLane ? (
+        {zone.status === "maintenance" ? (
+          <MaintenanceView zone={zone} />
+        ) : !selectedLane ? (
           <LaneList
             zone={zone}
             laneVehicles={laneVehicles}
