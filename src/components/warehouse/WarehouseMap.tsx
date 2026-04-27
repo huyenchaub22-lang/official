@@ -1,4 +1,4 @@
-import { Boxes } from "lucide-react";
+import { Boxes, Wrench } from "lucide-react";
 import type { Vehicle, Zone } from "@/lib/warehouse/types";
 import { fillColorBgSoft, getFillRatio, getFillTier } from "@/lib/warehouse/fillColors";
 
@@ -10,34 +10,52 @@ interface ZoneCardProps {
 }
 
 function ZoneCard({ zone, vehiclesInZone, onClick, isActive }: ZoneCardProps) {
+  const isMaint = zone.status === "maintenance";
+  const isFull = zone.status === "full";
   const ratio = getFillRatio(zone, vehiclesInZone);
-  const tier = getFillTier(ratio);
+  const tier = isFull ? "full" : getFillTier(ratio);
   const pct = Math.round(ratio * 100);
+
+  const bgClass = isMaint
+    ? "bg-violet-500/90 hover:bg-violet-500"
+    : fillColorBgSoft[tier];
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex h-full w-full flex-col rounded-lg border-2 p-3 text-left transition-all ${fillColorBgSoft[tier]} ${
+      className={`group relative flex h-full w-full flex-col rounded-lg border-2 p-2.5 text-left transition-all ${bgClass} ${
         isActive ? "border-white ring-2 ring-white/60" : "border-transparent"
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="text-base font-bold text-white">{zone.label}</div>
-          <div className="text-xs text-white/90">
-            {vehiclesInZone}/{zone.capacity} xe
+      <div className="flex items-start justify-between gap-1">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1 text-sm font-bold text-white">
+            {zone.label}
+            {isMaint && <Wrench className="h-3 w-3" />}
+            {isFull && <span className="rounded bg-white/30 px-1 text-[9px] font-bold uppercase">Full</span>}
+          </div>
+          <div className="text-[11px] text-white/90">
+            {isMaint ? "Bảo trì" : `${vehiclesInZone}/${zone.capacity} xe`}
           </div>
         </div>
       </div>
-      <div className="mt-auto pt-3">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/30">
-          <div className="h-full bg-white" style={{ width: `${Math.min(100, pct)}%` }} />
+      {!isMaint && (
+        <div className="mt-auto pt-1.5">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">
+            <div className="h-full bg-white" style={{ width: `${Math.min(100, pct)}%` }} />
+          </div>
+          <div className="mt-0.5 flex items-center justify-between text-[10px] text-white/95">
+            <span>{pct}%</span>
+            <span>{zone.lanes.length} làn</span>
+          </div>
         </div>
-        <div className="mt-1 flex items-center justify-between text-[11px] text-white/95">
-          <span>{pct}% đầy</span>
-          <span>{zone.lanes.length} làn</span>
+      )}
+      {isMaint && zone.maintenanceEnd && (
+        <div className="mt-auto pt-1 text-[10px] text-white/95">
+          Đến {zone.maintenanceEnd}
         </div>
-      </div>
+      )}
     </button>
   );
 }
@@ -60,67 +78,80 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick }: War
   const z = (id: string) => zones.find((zz) => zz.id === id)!;
   const cnt = (id: string) => countByZone.get(id) ?? 0;
 
+  const renderZone = (id: string) => (
+    <ZoneCard
+      zone={z(id)}
+      vehiclesInZone={cnt(id)}
+      onClick={() => onZoneClick(id)}
+      isActive={activeZoneId === id}
+    />
+  );
+
   return (
     <div className="rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="mb-3 flex items-start justify-between">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <Boxes className="h-5 w-5 text-primary" />
-            Warehouse Layout Map
+            Warehouse Layout (LOG2)
           </h2>
           <p className="text-sm text-muted-foreground">
-            Click vào <span className="font-semibold text-foreground">zone</span> → chọn{" "}
+            Click <span className="font-semibold text-foreground">zone</span> → chọn{" "}
             <span className="font-semibold text-foreground">làn</span> → xem chi tiết xe ·{" "}
-            {zones.length} zones · {zones.reduce((s, z) => s + z.lanes.length, 0)} làn
+            {zones.length} zones · {zones.reduce((s, zz) => s + zz.lanes.length, 0)} làn
           </p>
         </div>
         <Legend />
       </div>
 
-      <div className="rounded-xl bg-slate-900 p-3">
-        {/* Row 1: Z01 | Elev | Z02 | Spare */}
-        <div className="grid grid-cols-[1fr_64px_1fr_88px] gap-2">
-          <ZoneCard zone={z("Z01")} vehiclesInZone={cnt("Z01")} onClick={() => onZoneClick("Z01")} isActive={activeZoneId === "Z01"} />
-          <FixedCell label="Elevator" />
-          <ZoneCard zone={z("Z02")} vehiclesInZone={cnt("Z02")} onClick={() => onZoneClick("Z02")} isActive={activeZoneId === "Z02"} />
+      <div className="rounded-xl bg-blue-600 p-3">
+        {/* Row 1: A12 | Elev | A13 | Elev | DropSpare(side) — A11 + A10 are below in row 2 right */}
+        <div className="grid grid-cols-[1.4fr_56px_1.6fr_56px_120px] gap-2">
+          <div className="row-span-2">{renderZone("A12")}</div>
+          <FixedCell label="Elevator" tone="violet" vertical />
+          {renderZone("A13")}
+          <FixedCell label="Elevator" tone="violet" vertical />
           <FixedCell label="Drop spare parts & wait for elevator" tone="cyan" small />
         </div>
 
-        {/* Row 2: Z03 | Elev | Z04 | (empty space matched) */}
-        <div className="mt-2 grid grid-cols-[1fr_64px_1fr_88px] gap-2">
-          <ZoneCard zone={z("Z03")} vehiclesInZone={cnt("Z03")} onClick={() => onZoneClick("Z03")} isActive={activeZoneId === "Z03"} />
-          <FixedCell label="Elevator" />
-          <ZoneCard zone={z("Z04")} vehiclesInZone={cnt("Z04")} onClick={() => onZoneClick("Z04")} isActive={activeZoneId === "Z04"} />
+        {/* Row 2 (continuation): A11 | A10 (under A13) */}
+        <div className="mt-2 grid grid-cols-[1.4fr_56px_0.7fr_0.9fr_56px_120px] gap-2">
+          <div /> {/* A12 occupies above */}
+          <div /> {/* elevator above */}
+          {renderZone("A11")}
+          {renderZone("A10")}
+          <div />
           <div />
         </div>
 
-        {/* Row 3: Office | Z05 | Z06 | Z07 | Packing */}
-        <div className="mt-2 grid grid-cols-[180px_1fr_1fr_1fr_88px] gap-2">
+        {/* Row 3: Office | A9 | A8 | A7 | Packing */}
+        <div className="mt-2 grid grid-cols-[120px_0.6fr_1.4fr_1.6fr_100px] gap-2">
           <FixedCell label="Office" tone="pink" />
-          <ZoneCard zone={z("Z05")} vehiclesInZone={cnt("Z05")} onClick={() => onZoneClick("Z05")} isActive={activeZoneId === "Z05"} />
-          <ZoneCard zone={z("Z06")} vehiclesInZone={cnt("Z06")} onClick={() => onZoneClick("Z06")} isActive={activeZoneId === "Z06"} />
-          <ZoneCard zone={z("Z07")} vehiclesInZone={cnt("Z07")} onClick={() => onZoneClick("Z07")} isActive={activeZoneId === "Z07"} />
-          <FixedCell label="Packing line" tone="yellow" small />
+          {renderZone("A9")}
+          {renderZone("A8")}
+          {renderZone("A7")}
+          <FixedCell label="Packing line" tone="pink" small />
         </div>
 
-        {/* Row 4: Z08 | Z09 | Elev | A6 */}
-        <div className="mt-2 grid grid-cols-[1fr_1fr_64px_1fr] gap-2">
-          <ZoneCard zone={z("Z08")} vehiclesInZone={cnt("Z08")} onClick={() => onZoneClick("Z08")} isActive={activeZoneId === "Z08"} />
-          <ZoneCard zone={z("Z09")} vehiclesInZone={cnt("Z09")} onClick={() => onZoneClick("Z09")} isActive={activeZoneId === "Z09"} />
-          <FixedCell label="Elevator" />
-          <FixedCell label="A6: Drop spare parts" tone="cyan" />
+        {/* Row 4: A4 | Elev | A5 | Elev | A6 */}
+        <div className="mt-2 grid grid-cols-[0.8fr_56px_2fr_56px_1fr] gap-2">
+          {renderZone("A4")}
+          <FixedCell label="Elevator" tone="violet" vertical />
+          {renderZone("A5")}
+          <FixedCell label="Elevator" tone="violet" vertical />
+          {renderZone("A6")}
         </div>
 
-        {/* Row 5: Z10 | Z11 | A3 */}
-        <div className="mt-2 grid grid-cols-[1fr_1fr_1fr] gap-2">
-          <ZoneCard zone={z("Z10")} vehiclesInZone={cnt("Z10")} onClick={() => onZoneClick("Z10")} isActive={activeZoneId === "Z10"} />
-          <ZoneCard zone={z("Z11")} vehiclesInZone={cnt("Z11")} onClick={() => onZoneClick("Z11")} isActive={activeZoneId === "Z11"} />
-          <FixedCell label="A3: Spare parts" tone="cyan" />
+        {/* Row 5: A1 | A2 | A3 */}
+        <div className="mt-2 grid grid-cols-[0.8fr_2.2fr_1fr] gap-2">
+          {renderZone("A1")}
+          {renderZone("A2")}
+          {renderZone("A3")}
         </div>
 
-        {/* Stairs */}
+        {/* Bottom: Stairs */}
         <div className="mt-2">
-          <FixedCell label="Stairs" tall />
+          <FixedCell label="Stairs" tone="pink" small />
         </div>
       </div>
     </div>
@@ -131,24 +162,25 @@ function FixedCell({
   label,
   tone = "slate",
   small,
-  tall,
+  vertical,
 }: {
   label: string;
-  tone?: "slate" | "pink" | "cyan" | "yellow";
+  tone?: "slate" | "pink" | "cyan" | "yellow" | "violet";
   small?: boolean;
-  tall?: boolean;
+  vertical?: boolean;
 }) {
   const toneCls: Record<string, string> = {
     slate: "bg-slate-700 text-white",
-    pink: "bg-pink-200 text-pink-900",
-    cyan: "bg-sky-200 text-sky-900",
+    pink: "bg-pink-300 text-pink-950",
+    cyan: "bg-sky-200 text-sky-950",
     yellow: "bg-yellow-200 text-yellow-900",
+    violet: "bg-violet-300 text-violet-950",
   };
   return (
     <div
-      className={`flex items-center justify-center rounded-lg p-3 text-center font-medium ${toneCls[tone]} ${
-        small ? "text-[11px] leading-tight" : "text-sm"
-      } ${tall ? "min-h-24" : "min-h-full"}`}
+      className={`flex min-h-[56px] items-center justify-center rounded-lg p-2 text-center font-semibold ${toneCls[tone]} ${
+        small ? "text-[11px] leading-tight" : "text-xs"
+      } ${vertical ? "[writing-mode:vertical-rl] rotate-180" : ""}`}
     >
       {label}
     </div>
@@ -157,16 +189,17 @@ function FixedCell({
 
 function Legend() {
   const items: Array<{ label: string; cls: string }> = [
-    { label: "≤40% đầy", cls: "bg-emerald-500" },
+    { label: "≤40%", cls: "bg-emerald-500" },
     { label: "41–75%", cls: "bg-amber-500" },
     { label: "76–99%", cls: "bg-orange-500" },
-    { label: "Full 100%", cls: "bg-red-500" },
+    { label: "Full", cls: "bg-red-500" },
+    { label: "Bảo trì", cls: "bg-violet-500" },
   ];
   return (
-    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
       {items.map((it) => (
-        <div key={it.label} className="flex items-center gap-1.5">
-          <div className={`h-3 w-6 rounded ${it.cls}`} />
+        <div key={it.label} className="flex items-center gap-1">
+          <div className={`h-3 w-5 rounded ${it.cls}`} />
           <span>{it.label}</span>
         </div>
       ))}
