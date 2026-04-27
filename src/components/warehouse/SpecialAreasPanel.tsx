@@ -1,4 +1,5 @@
-import { AlertTriangle, Info, Truck, Wrench } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, CheckCircle2, Info, Send, Truck, Wrench } from "lucide-react";
 import type { SpecialArea } from "@/lib/warehouse/types";
 
 const ICONS = {
@@ -30,22 +31,23 @@ interface Props {
 }
 
 export function SpecialAreasPanel({ areas }: Props) {
+  const [requestSent, setRequestSent] = useState(false);
+
   return (
     <section className="rounded-2xl border bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">Khu vực đặc biệt (ngoài layout)</h3>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <Info className="h-3.5 w-3.5" />
-          Số đầu = xe đang ở khu vực · Số sau = sức chứa tối đa
+          Số xe đang nằm tại khu vực
         </p>
       </div>
       <div className="grid gap-3 md:grid-cols-3">
         {areas.map((a) => {
           const Icon = ICONS[a.id];
           const tone = TONES[a.id];
-          const pct = Math.round((a.count / a.capacity) * 100);
           return (
-            <div key={a.id} className={`rounded-xl border p-4 ${tone.card}`}>
+            <div key={a.id} className={`flex flex-col rounded-xl border p-4 ${tone.card}`}>
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-2">
                   <Icon className={`mt-0.5 h-5 w-5 ${tone.icon}`} />
@@ -56,13 +58,37 @@ export function SpecialAreasPanel({ areas }: Props) {
                 </div>
                 <div className="text-right">
                   <div className={`text-2xl font-bold ${tone.pct}`}>{a.count}</div>
-                  <div className="text-[11px] text-muted-foreground">/ {a.capacity} sức chứa</div>
+                  <div className="text-[11px] text-muted-foreground">xe</div>
                 </div>
               </div>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/60">
-                <div className={`h-full ${tone.icon.replace("text-", "bg-")}`} style={{ width: `${Math.min(100, pct)}%` }} />
-              </div>
-              <p className="mt-2 text-[11px] leading-snug text-foreground/70">{a.longDesc}</p>
+              <p className="mt-3 flex-1 text-[11px] leading-snug text-foreground/70">{a.longDesc}</p>
+
+              {a.id === "MAINT" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequestSent(true);
+                    setTimeout(() => setRequestSent(false), 3000);
+                  }}
+                  className={`mt-3 flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    requestSent
+                      ? "bg-emerald-500 text-white"
+                      : "bg-amber-500 text-white hover:bg-amber-600"
+                  }`}
+                >
+                  {requestSent ? (
+                    <>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Đã gửi yêu cầu
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-3.5 w-3.5" />
+                      Yêu cầu nhà máy sửa chữa
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           );
         })}
