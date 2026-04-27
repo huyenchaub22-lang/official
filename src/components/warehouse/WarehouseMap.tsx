@@ -105,24 +105,52 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick }: War
       </div>
 
       <div className="rounded-xl bg-blue-600 p-3">
-        {/* Row 1: A12 | Elev | A13 | Elev | DropSpare(side) — A11 + A10 are below in row 2 right */}
-        <div className="grid grid-cols-[1.4fr_56px_1.6fr_56px_120px] gap-2">
-          <div className="row-span-2">{renderZone("A12")}</div>
-          <FixedCell label="Elevator" tone="violet" vertical />
-          {renderZone("A13")}
-          <FixedCell label="Elevator" tone="violet" vertical />
-          <FixedCell label="Drop spare parts & wait for elevator" tone="cyan" small />
+        {/* Top block: A12 (tall) | Elev | (A13 / A11+A10) | Elev | DropSpare */}
+        <div className="grid grid-cols-[1.3fr_48px_2.4fr_48px_120px] gap-2">
+          {/* Left tall: A12 */}
+          <div className="row-span-2 min-h-[180px]">{renderZone("A12")}</div>
+          <FixedCell label="Elevator" tone="violet" vertical className="row-span-2" />
+          {/* Middle top: A13 */}
+          <div className="min-h-[88px]">{renderZone("A13")}</div>
+          <FixedCell label="Elevator" tone="violet" vertical className="row-span-2" />
+          <FixedCell label="Drop spare parts & wait for elevator" tone="cyan" small className="row-span-2" />
+          {/* Middle bottom: A11 + A10 */}
+          <div className="grid min-h-[88px] grid-cols-[1fr_1.4fr] gap-2">
+            {renderZone("A11")}
+            {renderZone("A10")}
+          </div>
         </div>
 
-        {/* Row 2 (continuation): A11 | A10 (under A13) */}
-        <div className="mt-2 grid grid-cols-[1.4fr_56px_0.7fr_0.9fr_56px_120px] gap-2">
-          <div /> {/* A12 occupies above */}
-          <div /> {/* elevator above */}
-          {renderZone("A11")}
-          {renderZone("A10")}
-          <div />
-          <div />
+        {/* Row 3: Office | A9 | A8 | A7 | Packing */}
+        <div className="mt-2 grid grid-cols-[120px_0.55fr_1.4fr_1.6fr_100px] gap-2">
+          <FixedCell label="Office" tone="pink" />
+          {renderZone("A9")}
+          {renderZone("A8")}
+          {renderZone("A7")}
+          <FixedCell label="Packing line" tone="pink" small />
         </div>
+
+        {/* Row 4: A4 | Elev | A5 | Elev | A6 */}
+        <div className="mt-2 grid grid-cols-[0.8fr_48px_2fr_48px_1fr] gap-2">
+          {renderZone("A4")}
+          <FixedCell label="Elevator" tone="violet" vertical />
+          {renderZone("A5")}
+          <FixedCell label="Elevator" tone="violet" vertical />
+          {renderZone("A6")}
+        </div>
+
+        {/* Row 5: A1 | A2 | A3 */}
+        <div className="mt-2 grid grid-cols-[0.8fr_2.2fr_1fr] gap-2">
+          {renderZone("A1")}
+          {renderZone("A2")}
+          {renderZone("A3")}
+        </div>
+
+        {/* Bottom: Stairs */}
+        <div className="mt-2">
+          <FixedCell label="Stairs" tone="pink" small />
+        </div>
+      </div>
 
         {/* Row 3: Office | A9 | A8 | A7 | Packing */}
         <div className="mt-2 grid grid-cols-[120px_0.6fr_1.4fr_1.6fr_100px] gap-2">
@@ -163,11 +191,13 @@ function FixedCell({
   tone = "slate",
   small,
   vertical,
+  className = "",
 }: {
   label: string;
   tone?: "slate" | "pink" | "cyan" | "yellow" | "violet";
   small?: boolean;
   vertical?: boolean;
+  className?: string;
 }) {
   const toneCls: Record<string, string> = {
     slate: "bg-slate-700 text-white",
@@ -180,7 +210,7 @@ function FixedCell({
     <div
       className={`flex min-h-[56px] items-center justify-center rounded-lg p-2 text-center font-semibold ${toneCls[tone]} ${
         small ? "text-[11px] leading-tight" : "text-xs"
-      } ${vertical ? "[writing-mode:vertical-rl] rotate-180" : ""}`}
+      } ${vertical ? "[writing-mode:vertical-rl] rotate-180" : ""} ${className}`}
     >
       {label}
     </div>
