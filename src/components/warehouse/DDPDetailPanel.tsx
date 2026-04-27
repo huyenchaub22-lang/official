@@ -88,23 +88,58 @@ export function DDPDetailPanel({ ddp, vehicles, onClose, onToggleVin, onClearLin
         </div>
 
         <footer className="grid grid-cols-2 gap-2 border-t p-4">
-          <button type="button" className="flex items-center justify-center gap-2 rounded-md border bg-background px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
+          <button
+            type="button"
+            onClick={() => exportDDPToCSV(ddp)}
+            disabled={totalSelected === 0}
+            className="flex items-center justify-center gap-2 rounded-md border bg-background px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
+          >
             <Download className="h-4 w-4" />
-            Export ({totalSelected})
+            Export CSV ({totalSelected})
           </button>
           <button
             type="button"
-            disabled={totalSelected < ddp.totalQty}
+            onClick={() => {
+              if (ddp.status === "done") return;
+              if (window.confirm(`Hoàn thành ${ddp.id}? Các xe đã chọn sẽ được đánh dấu xuất kho.`)) {
+                onComplete(ddp.id);
+                onClose();
+              }
+            }}
+            disabled={totalSelected < ddp.totalQty || ddp.status === "done"}
             className="flex items-center justify-center gap-2 rounded-md bg-emerald-500 px-3 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-500/40"
           >
             <CheckCircle2 className="h-4 w-4" />
-            Hoàn thành đơn hàng
+            {ddp.status === "done" ? "Đã hoàn thành" : "Hoàn thành đơn hàng"}
           </button>
         </footer>
       </aside>
     </div>
   );
 }
+
+function exportDDPToCSV(ddp: DDP) {
+  const rows: string[] = [];
+  rows.push(["DDP_ID", "CARRIER", "LINE_ID", "MODEL_CODE", "TYPE_CODE", "OPTION_CODE", "COLOR_CODE", "COLOR_NAME", "QTY", "VIN", "SUGGESTED_ZONE"].join(","));
+  ddp.items.forEach((it) => {
+    if (it.selectedVins.length === 0) {
+      rows.push([ddp.id, ddp.carrier, it.id, it.modelCode, it.typeCode, it.optionCode, it.colorCode, it.colorName, String(it.qty), "", it.suggestedZoneId].join(","));
+    } else {
+      it.selectedVins.forEach((vin) => {
+        rows.push([ddp.id, ddp.carrier, it.id, it.modelCode, it.typeCode, it.optionCode, it.colorCode, it.colorName, "1", vin, it.suggestedZoneId].join(","));
+      });
+    }
+  });
+  const csv = rows.join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${ddp.id}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
 function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
