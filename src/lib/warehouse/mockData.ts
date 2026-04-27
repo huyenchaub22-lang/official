@@ -11,75 +11,163 @@ import type {
 export const COLORS: Array<{ code: string; name: string; hex: string }> = [
   { code: "NHA76", name: "Đen", hex: "#0a0a0a" },
   { code: "NHB18", name: "Đen nhám", hex: "#1f1f1f" },
-  { code: "NHC60", name: "Xám titan", hex: "#5a5a5a" },
   { code: "NHB25", name: "Xám đen", hex: "#3a3a3a" },
+  { code: "NHB35", name: "Xám than", hex: "#2c2c2c" },
+  { code: "NHB55", name: "Xám đậm", hex: "#4a4a4a" },
   { code: "NHC26", name: "Xám bạc", hex: "#9ca3af" },
-  { code: "NHD14", name: "Trắng ngọc trai", hex: "#f5f5f5" },
+  { code: "NHC34", name: "Bạc", hex: "#cbd5e1" },
+  { code: "NHC35", name: "Xanh rêu", hex: "#4d7c0f" },
+  { code: "NHC60", name: "Xám titan", hex: "#5a5a5a" },
+  { code: "NHC75", name: "Xám đồng", hex: "#7a6a55" },
   { code: "NHD01", name: "Trắng", hex: "#fafafa" },
   { code: "NHD03", name: "Trắng kem", hex: "#fef9c3" },
+  { code: "NHD14", name: "Trắng ngọc trai", hex: "#f5f5f5" },
+  { code: "NH436", name: "Bạc nhám", hex: "#bfc3c7" },
   { code: "YR381", name: "Vàng", hex: "#facc15" },
+  { code: "GY163", name: "Xám sáng", hex: "#a8a29e" },
+  { code: "R350", name: "Đỏ tươi", hex: "#ef4444" },
   { code: "R368", name: "Đỏ Honda", hex: "#dc2626" },
   { code: "R389", name: "Đỏ rượu", hex: "#7f1d1d" },
+  { code: "PB406", name: "Xanh dương nhạt", hex: "#60a5fa" },
+  { code: "PB413", name: "Xanh navy", hex: "#1e40af" },
   { code: "PB421", name: "Xanh dương ngọc", hex: "#2563eb" },
   { code: "PB434", name: "Xanh dương đậm", hex: "#1e3a8a" },
-  { code: "NHC35", name: "Xanh rêu", hex: "#4d7c0f" },
-  { code: "NHC34", name: "Bạc", hex: "#cbd5e1" },
 ];
 
 // ---------- Models thật từ CSV ----------
+// Mỗi model có danh sách màu đúng theo dữ liệu xuất kho thực tế
 const MODELS: Record<
   string,
-  { code: string; name: string; type: string; option: string }
+  {
+    code: string;
+    name: string;
+    type: string;
+    option: string;
+    colors: string[]; // các COLOR_CODE thực tế
+  }
 > = {
-  NSC110: { code: "NSC110", name: "Vision", type: "K2CN", option: "V03" },
-  ACA125: { code: "ACA125", name: "Air Blade 125", type: "K3AG", option: "V00" },
-  AFS125: { code: "AFS125", name: "Air Blade 125 Sport", type: "K73Y", option: "V02" },
-  FSH125: { code: "FSH125", name: "Future 125", type: "K1NG", option: "V03" },
-  AFB110: { code: "AFB110", name: "Wave Alpha", type: "K89R", option: "V41" },
-  SH125: { code: "SH125", name: "SH 125", type: "K0RP", option: "V01" },
-  NHX125: { code: "NHX125", name: "Lead 125", type: "K2TJ", option: "V05" },
-  SH160: { code: "SH160", name: "SH 160", type: "K0SP", option: "V08" },
-  ACA160: { code: "ACA160", name: "Air Blade 160", type: "K2ZG", option: "V06" },
-  AFP110: { code: "AFP110", name: "Wave RSX", type: "K90P", option: "V01" },
-  FS150: { code: "FS150", name: "Winner X", type: "K2PN", option: "V13" },
-  ACB125: { code: "ACB125", name: "Air Blade 125 ABS", type: "K2VG", option: "V25" },
+  NSC110: {
+    code: "NSC110",
+    name: "Vision",
+    type: "K2CN",
+    option: "V03",
+    colors: ["YR381", "R368", "NHA76", "NHB18", "NHC60", "NHD01"],
+  },
+  ACA125: {
+    code: "ACA125",
+    name: "Air Blade 125",
+    type: "K3AG",
+    option: "V01",
+    colors: ["NHB25", "R368", "NHA76", "NHC60", "NHD14", "PB434"],
+  },
+  AFS125: {
+    code: "AFS125",
+    name: "Air Blade 125 Sport",
+    type: "K73Y",
+    option: "V01",
+    colors: ["NHC35", "NHC26", "PB421", "R350", "NHB55", "NHC34"],
+  },
+  FSH125: {
+    code: "FSH125",
+    name: "Future 125",
+    type: "K1NG",
+    option: "V13",
+    colors: ["NHB18", "NHC60", "NHB35", "R368", "NHA76", "PB421"],
+  },
+  AFB110: {
+    code: "AFB110",
+    name: "Wave Alpha",
+    type: "K89R",
+    option: "V30",
+    colors: ["NHA76", "PB421", "R389", "NHB55"],
+  },
+  SH125: {
+    code: "SH125",
+    name: "SH 125",
+    type: "K0RP",
+    option: "V05",
+    colors: ["NHD03", "NHD01", "NHC60", "NHD14", "NHB25"],
+  },
+  NHX125: {
+    code: "NHX125",
+    name: "Lead 125",
+    type: "K2TJ",
+    option: "V02",
+    colors: ["NHA76", "NHC34", "NHD14", "NHB18"],
+  },
+  SH160: {
+    code: "SH160",
+    name: "SH 160",
+    type: "K0SP",
+    option: "V05",
+    colors: ["NHC60", "NHD03", "NHD14", "NHD01", "GY163", "R368"],
+  },
+  ACA160: {
+    code: "ACA160",
+    name: "Air Blade 160",
+    type: "K2ZG",
+    option: "V01",
+    colors: ["NHD14", "R368", "NHA76"],
+  },
+  AFP110: {
+    code: "AFP110",
+    name: "Wave RSX",
+    type: "K90P",
+    option: "V01",
+    colors: ["R368", "NHC60", "NHB25", "PB421"],
+  },
+  FS150: {
+    code: "FS150",
+    name: "Winner X",
+    type: "K2PN",
+    option: "V15",
+    colors: ["NHA76", "NHB25", "NHC60", "GY163", "R389"],
+  },
+  ACB125: {
+    code: "ACB125",
+    name: "Air Blade 125 ABS",
+    type: "K2VG",
+    option: "V03",
+    colors: ["NH436", "PB406"],
+  },
 };
 
-// ---------- Layout LOG2 (ảnh user gửi) ----------
-// 13 zones tương ứng A1..A13. Mỗi zone có model & sức chứa hợp lý.
+// ---------- Layout LOG2 ----------
+// Số làn và sức chứa được phân bổ lại cho hợp lý theo diện tích zone.
+// Quy tắc: zone càng rộng → nhiều làn; mỗi làn ~ 14–18 xe.
 const ZONE_PLAN: Array<{
   id: string;
-  capacity: number;
-  models: string[]; // keys of MODELS
+  laneCount: number;
+  laneCapacity: number; // sức chứa mỗi làn (đồng đều)
+  models: string[];
   fillRatio: number;
   status: "normal" | "full" | "maintenance";
   maintenanceReason?: string;
   maintenanceStart?: string;
   maintenanceEnd?: string;
 }> = [
-  { id: "A1", capacity: 60, models: ["NSC110"], fillRatio: 0.78, status: "normal" },
-  { id: "A2", capacity: 90, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" },
-  { id: "A3", capacity: 30, models: ["AFP110"], fillRatio: 0.5, status: "normal" }, // Spare parts area thực ra vẫn là spare
-  { id: "A4", capacity: 55, models: ["FSH125"], fillRatio: 0.85, status: "normal" },
-  { id: "A5", capacity: 95, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" }, // FULL
-  { id: "A6", capacity: 30, models: ["NHX125"], fillRatio: 0.6, status: "normal" },
-  { id: "A7", capacity: 90, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" },
-  { id: "A8", capacity: 80, models: ["ACA160", "ACB125"], fillRatio: 0.0, status: "maintenance",
+  // Hàng dưới
+  { id: "A1", laneCount: 4, laneCapacity: 16, models: ["NSC110"], fillRatio: 0.78, status: "normal" },
+  { id: "A2", laneCount: 6, laneCapacity: 16, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" },
+  { id: "A3", laneCount: 3, laneCapacity: 14, models: ["AFP110"], fillRatio: 0.55, status: "normal" },
+  // Hàng giữa dưới
+  { id: "A4", laneCount: 4, laneCapacity: 15, models: ["FSH125"], fillRatio: 0.85, status: "normal" },
+  { id: "A5", laneCount: 6, laneCapacity: 18, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" },
+  { id: "A6", laneCount: 3, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.6, status: "normal" },
+  // Hàng giữa trên
+  { id: "A7", laneCount: 6, laneCapacity: 16, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" },
+  { id: "A8", laneCount: 5, laneCapacity: 16, models: ["ACA160", "ACB125"], fillRatio: 0, status: "maintenance",
     maintenanceReason: "Sửa nền & sơn lại vạch chia làn",
     maintenanceStart: "24/4/2026",
     maintenanceEnd: "29/4/2026",
   },
-  { id: "A9", capacity: 30, models: ["NHX125"], fillRatio: 0.7, status: "normal" },
-  { id: "A10", capacity: 90, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" },
-  { id: "A11", capacity: 65, models: ["AFB110"], fillRatio: 0.74, status: "normal" },
-  { id: "A12", capacity: 80, models: ["NSC110"], fillRatio: 0.69, status: "normal" },
-  { id: "A13", capacity: 90, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" },
+  { id: "A9", laneCount: 3, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.7, status: "normal" },
+  // Hàng trên
+  { id: "A10", laneCount: 6, laneCapacity: 16, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" },
+  { id: "A11", laneCount: 4, laneCapacity: 16, models: ["AFB110"], fillRatio: 0.74, status: "normal" },
+  { id: "A12", laneCount: 5, laneCapacity: 16, models: ["NSC110"], fillRatio: 0.69, status: "normal" },
+  { id: "A13", laneCount: 5, laneCapacity: 16, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" },
 ];
-
-const LANES_PER_ZONE: Record<string, number> = {
-  A1: 4, A2: 5, A3: 3, A4: 4, A5: 5, A6: 3, A7: 5, A8: 4,
-  A9: 3, A10: 5, A11: 4, A12: 5, A13: 5,
-};
 
 // ---------- pseudo-random deterministic ----------
 function mulberry32(seed: number) {
@@ -113,30 +201,44 @@ const zones: Zone[] = [];
 // Build zones, lanes, vehicles
 for (const plan of ZONE_PLAN) {
   const zoneId = plan.id;
-  const laneCount = LANES_PER_ZONE[zoneId];
-  const baseLaneCap = Math.floor(plan.capacity / laneCount);
-  const remainder = plan.capacity - baseLaneCap * laneCount;
+  const laneCount = plan.laneCount;
+  const capacity = laneCount * plan.laneCapacity;
 
   const lanes: Lane[] = [];
-  // Maintenance zones don't host vehicles
   const effectiveFill = plan.status === "maintenance" ? 0 : plan.fillRatio;
 
+  // Phân chia màu cho các làn: mỗi làn 1 (model + màu) ổn định.
+  // Khi zone có 2 model → xen kẽ. Khi có nhiều màu hơn số làn → rải đa dạng.
   for (let i = 0; i < laneCount; i++) {
-    const laneCap = baseLaneCap + (i < remainder ? 1 : 0);
     const modelKey = plan.models[i % plan.models.length];
     const modelDef = MODELS[modelKey];
-    const primaryColor = COLORS[(i * 3 + zoneId.charCodeAt(zoneId.length - 1)) % COLORS.length];
+    // Pick màu thực tế của model — luân phiên để đa dạng trên các làn
+    const colorIdx =
+      (Math.floor(i / plan.models.length) + zoneId.charCodeAt(zoneId.length - 1)) %
+      modelDef.colors.length;
+    const primaryColorCode = modelDef.colors[colorIdx];
+    const primaryColor = COLORS.find((c) => c.code === primaryColorCode)!;
 
-    const targetLaneFill = Math.round(laneCap * effectiveFill);
+    const targetLaneFill = Math.round(plan.laneCapacity * effectiveFill);
     const laneVins: string[] = [];
 
     for (let v = 0; v < targetLaneFill; v++) {
-      const drift = rand() < 0.12 && v >= laneCap - 2;
-      const useColor = drift ? pick(COLORS) : primaryColor;
-      const useModel =
-        drift && plan.models.length > 1
-          ? MODELS[plan.models[(i + 1) % plan.models.length]]
-          : modelDef;
+      // ~10% xe lệch (dồn kho từ làn/zone khác): khác màu hoặc khác model phụ
+      const drift = rand() < 0.1 && v >= plan.laneCapacity - 3;
+      let useColor = primaryColor;
+      let useModel = modelDef;
+      if (drift) {
+        if (plan.models.length > 1 && rand() < 0.5) {
+          useModel = MODELS[plan.models[(i + 1) % plan.models.length]];
+          useColor =
+            COLORS.find((c) => c.code === useModel.colors[0]) ?? primaryColor;
+        } else {
+          // Đổi sang màu khác cùng model (vẫn trong list màu thực tế)
+          const altColorCode =
+            modelDef.colors[(colorIdx + 1) % modelDef.colors.length];
+          useColor = COLORS.find((c) => c.code === altColorCode) ?? primaryColor;
+        }
+      }
 
       const arrivedDate = new Date(
         2026,
@@ -153,34 +255,49 @@ for (const plan of ZONE_PLAN) {
         { ts: fmtTime(placedDate), from: "RECV", to: `${zoneId}/L${i + 1}`, note: "Sắp xếp vào zone theo MTOC" },
       ];
 
-      // ~15% consolidation từ zone khác
+      // ~15% consolidation: từng ở zone khác → dồn về đây
       if (rand() < 0.15) {
-        const idx = (parseInt(zoneId.slice(1)) % 13) + 1;
-        const otherZone = `A${idx}`;
-        const consolidatedDate = new Date(placedDate.getTime() + (2 + Math.floor(rand() * 6)) * 24 * 3600 * 1000);
-        history[1] = { ts: fmtTime(placedDate), from: "RECV", to: `${otherZone}/L${1 + Math.floor(rand() * 4)}`, note: "Sắp xếp vào zone ban đầu" };
-        history.push({ ts: fmtTime(consolidatedDate), from: history[1].to, to: `${zoneId}/L${i + 1}`, note: "Dồn kho — gom cùng MTOC để xuất hàng" });
+        const otherIdx = ((parseInt(zoneId.slice(1)) % 13) + 1);
+        const otherZone = `A${otherIdx}`;
+        const movedDate = new Date(placedDate.getTime() + (2 + Math.floor(rand() * 6)) * 24 * 3600 * 1000);
+        history[1] = {
+          ts: fmtTime(placedDate),
+          from: "RECV",
+          to: `${otherZone}/L${1 + Math.floor(rand() * 3)}`,
+          note: "Sắp xếp vào zone ban đầu",
+        };
+        history.push({
+          ts: fmtTime(movedDate),
+          from: history[1].to,
+          to: `${zoneId}/L${i + 1}`,
+          note: "Dồn kho — gom cùng MTOC để xuất hàng",
+        });
       }
 
-      // ~8% từng đi qua NG → sửa OK quay lại
-      if (rand() < 0.08) {
+      // ~12% từng đi qua NG → MAINT → QC → quay lại layout
+      if (rand() < 0.12) {
+        const last = history[history.length - 1].to;
         const ngDate = new Date(placedDate.getTime() + 24 * 3600 * 1000);
         const fixDate = new Date(ngDate.getTime() + 2 * 24 * 3600 * 1000);
         const okDate = new Date(fixDate.getTime() + 18 * 3600 * 1000);
         const backDate = new Date(okDate.getTime() + 4 * 3600 * 1000);
-        const last = history[history.length - 1].to;
         history.push(
-          { ts: fmtTime(ngDate), from: last, to: "NG", note: "Phát hiện lỗi ngoại quan (xước/móp)" },
-          { ts: fmtTime(fixDate), from: "NG", to: "MAINT", note: "Chuyển nhà máy sửa chữa" },
-          { ts: fmtTime(okDate), from: "MAINT", to: "QC", note: "Sửa OK — qua QC kiểm tra cuối" },
+          { ts: fmtTime(ngDate), from: last, to: "Kho Check (NG)", note: "Phát hiện lỗi ngoại quan (xước/móp)" },
+          { ts: fmtTime(fixDate), from: "Kho Check (NG)", to: "Nhà máy bảo dưỡng", note: "Chuyển nhà máy sửa chữa" },
+          { ts: fmtTime(okDate), from: "Nhà máy bảo dưỡng", to: "QC", note: "Sửa OK — qua QC kiểm tra cuối" },
           { ts: fmtTime(backDate), from: "QC", to: `${zoneId}/L${i + 1}`, note: "Đạt QC — trả lại layout đúng MTOC" },
         );
       }
 
-      // ~5% chuyển từ A8 (đang bảo trì) sang đây (mô phỏng dồn xe khi zone đóng)
+      // ~5% từng dồn từ A8 (đang bảo trì) sang đây
       if (rand() < 0.05 && zoneId !== "A8") {
         const moveDate = new Date(placedDate.getTime() + 36 * 3600 * 1000);
-        history.push({ ts: fmtTime(moveDate), from: history[history.length - 1].to, to: `${zoneId}/L${i + 1}`, note: "Chuyển từ A8 do A8 đang bảo trì nền/sơn" });
+        history.push({
+          ts: fmtTime(moveDate),
+          from: history[history.length - 1].to,
+          to: `${zoneId}/L${i + 1}`,
+          note: "Chuyển từ A8 do A8 đang bảo trì nền/sơn",
+        });
       }
 
       const vin = nextVin();
@@ -205,7 +322,7 @@ for (const plan of ZONE_PLAN) {
     lanes.push({
       id: `${zoneId}-L${i + 1}`,
       label: `L${i + 1}`,
-      capacity: laneCap,
+      capacity: plan.laneCapacity,
       primaryModelCode: modelDef.code,
       primaryColorCode: primaryColor.code,
       vehicleVins: laneVins,
@@ -215,7 +332,7 @@ for (const plan of ZONE_PLAN) {
   zones.push({
     id: zoneId,
     label: zoneId,
-    capacity: plan.capacity,
+    capacity,
     lanes,
     modelNames: plan.models.map((k) => MODELS[k].name),
     status: plan.status,
@@ -229,20 +346,31 @@ for (const plan of ZONE_PLAN) {
 function makeSpecialVehicle(status: Vehicle["status"]): Vehicle {
   const modelKey = pick(Object.keys(MODELS));
   const model = MODELS[modelKey];
-  const c = pick(COLORS);
-  const arrived = new Date(2026, 2 + Math.floor(rand() * 2), 1 + Math.floor(rand() * 28), 8 + Math.floor(rand() * 10));
+  const colorCode = pick(model.colors);
+  const c = COLORS.find((cc) => cc.code === colorCode)!;
+  const arrived = new Date(
+    2026,
+    2 + Math.floor(rand() * 2),
+    1 + Math.floor(rand() * 28),
+    8 + Math.floor(rand() * 10),
+  );
   const history: HistoryEntry[] = [
     { ts: fmtTime(arrived), from: "—", to: "RECV", note: "Xe nhập kho từ nhà máy Honda VN" },
   ];
   if (status === "in_ng") {
     const t = new Date(arrived.getTime() + 24 * 3600 * 1000);
-    history.push({ ts: fmtTime(t), from: "RECV", to: "NG", note: "Phát hiện lỗi ngoại quan khi kiểm tra đầu vào" });
+    history.push({
+      ts: fmtTime(t),
+      from: "RECV",
+      to: "Kho Check (NG)",
+      note: "Phát hiện lỗi ngoại quan khi kiểm tra đầu vào",
+    });
   } else if (status === "in_maintenance") {
     const t1 = new Date(arrived.getTime() + 24 * 3600 * 1000);
     const t2 = new Date(t1.getTime() + 24 * 3600 * 1000);
     history.push(
-      { ts: fmtTime(t1), from: "RECV", to: "NG", note: "Phát hiện lỗi ngoại quan" },
-      { ts: fmtTime(t2), from: "NG", to: "MAINT", note: "Chuyển nhà máy sửa lỗi" },
+      { ts: fmtTime(t1), from: "RECV", to: "Kho Check (NG)", note: "Phát hiện lỗi ngoại quan" },
+      { ts: fmtTime(t2), from: "Kho Check (NG)", to: "Nhà máy bảo dưỡng", note: "Chuyển nhà máy sửa lỗi" },
     );
   }
   return {
@@ -260,9 +388,9 @@ function makeSpecialVehicle(status: Vehicle["status"]): Vehicle {
   };
 }
 
-const ngCount = 25;
-const maintCount = 12;
-const recvCount = 40;
+const ngCount = 18;
+const maintCount = 9;
+const recvCount = 32;
 for (let i = 0; i < ngCount; i++) vehicles.push(makeSpecialVehicle("in_ng"));
 for (let i = 0; i < maintCount; i++) vehicles.push(makeSpecialVehicle("in_maintenance"));
 for (let i = 0; i < recvCount; i++) vehicles.push(makeSpecialVehicle("in_receiving"));
@@ -270,12 +398,12 @@ for (let i = 0; i < recvCount; i++) vehicles.push(makeSpecialVehicle("in_receivi
 const specialAreas: SpecialArea[] = [
   {
     id: "NG",
-    label: "NG Zone (lỗi ngoại quan)",
-    shortDesc: "Xe đang chờ kiểm tra / chuyển sửa",
+    label: "Kho Check",
+    shortDesc: "Xe đang chờ kiểm tra ngoại quan",
     longDesc:
-      "Khu giữ tạm xe có lỗi bề mặt (xước, trầy, móp). Sau khi xác nhận sẽ chuyển sang Nhà máy bảo dưỡng để sửa, sửa xong qua QC rồi quay lại layout.",
+      "Khu (NG zone) giữ tạm xe có lỗi bề mặt (xước, trầy, móp). Sau khi xác nhận sẽ chuyển sang Nhà máy bảo dưỡng để sửa, sửa xong qua QC rồi quay lại layout.",
     count: ngCount,
-    capacity: 30,
+    capacity: ngCount,
   },
   {
     id: "MAINT",
@@ -284,28 +412,26 @@ const specialAreas: SpecialArea[] = [
     longDesc:
       "Xe đang được sửa các lỗi bề mặt. Sau khi đạt QC sẽ được chuyển trở lại layout đúng zone theo MTOC.",
     count: maintCount,
-    capacity: 20,
+    capacity: maintCount,
   },
   {
     id: "RECV",
     label: "Receiving Area",
     shortDesc: "Mới nhập kho, chờ kiểm tra",
     longDesc:
-      "Khu nhận xe từ nhà máy. Sau khi kiểm tra ngoại quan, xe OK vào layout, xe lỗi chuyển sang NG Zone.",
+      "Khu nhận xe từ nhà máy. Sau khi kiểm tra ngoại quan, xe OK vào layout, xe lỗi chuyển sang Kho Check.",
     count: recvCount,
-    capacity: 50,
+    capacity: recvCount,
   },
 ];
 
 // ---------- DDP plans ----------
-// Pick xe thật trong layout cho mỗi MTOC để đảm bảo MỌI line đều có gợi ý
-function findAvailable(modelCode: string, colorCode: string): string | undefined {
-  const z = zones.find((zz) =>
-    zz.lanes.some((l) => l.primaryModelCode === modelCode),
+// Chỉ build dòng MTOC nếu trong layout TỒN TẠI ít nhất 1 xe khớp (model + màu).
+// → Đảm bảo "không bao giờ" gặp trường hợp không có gợi ý.
+function findZoneForMTOC(modelCode: string, colorCode: string): string | undefined {
+  const v = vehicles.find(
+    (vv) => vv.status === "in_zone" && vv.modelCode === modelCode && vv.colorCode === colorCode,
   );
-  if (z) return z.id;
-  // fallback: find any vehicle
-  const v = vehicles.find((vv) => vv.modelCode === modelCode && vv.colorCode === colorCode);
   return v?.zoneId;
 }
 
@@ -322,60 +448,74 @@ function buildDDP(
   date: string,
   itemSpecs: DDPItemSpec[],
 ): DDP {
-  const items = itemSpecs.map((spec, idx) => {
-    const m = MODELS[spec.modelKey];
-    const color = COLORS.find((c) => c.code === spec.colorCode)!;
-    const suggestedZoneId =
-      findAvailable(m.code, color.code) ??
-      zones.find((z) => z.lanes.some((l) => l.primaryModelCode === m.code))?.id ??
-      zones[0].id;
-    return {
-      id: `${id}-line-${idx}`,
-      modelName: m.name,
-      modelCode: m.code,
-      typeCode: m.type,
-      optionCode: m.option,
-      colorCode: color.code,
-      colorName: color.name,
-      colorHex: color.hex,
-      qty: spec.qty,
-      suggestedZoneId,
-      selectedVins: [],
-    };
-  });
+  const items = itemSpecs
+    .map((spec, idx) => {
+      const m = MODELS[spec.modelKey];
+      const color = COLORS.find((c) => c.code === spec.colorCode);
+      if (!color) return null;
+      const suggestedZoneId = findZoneForMTOC(m.code, color.code);
+      if (!suggestedZoneId) return null; // bỏ MTOC không có xe trong layout
+      // Giới hạn qty bằng số xe thực có
+      const available = vehicles.filter(
+        (v) => v.status === "in_zone" && v.modelCode === m.code && v.colorCode === color.code,
+      ).length;
+      const qty = Math.min(spec.qty, available);
+      if (qty <= 0) return null;
+      return {
+        id: `${id}-line-${idx}`,
+        modelName: m.name,
+        modelCode: m.code,
+        typeCode: m.type,
+        optionCode: m.option,
+        colorCode: color.code,
+        colorName: color.name,
+        colorHex: color.hex,
+        qty,
+        suggestedZoneId,
+        selectedVins: [] as string[],
+      };
+    })
+    .filter((it): it is NonNullable<typeof it> => it !== null);
   const totalQty = items.reduce((s, it) => s + it.qty, 0);
   return { id, carrier, carrierCode, createdAt: date, status, totalQty, items };
 }
 
-// Carrier thật từ CSV: NKV, VETRANCO_S, VIJACO_S, PHUONGANH, VIJACO_N, DRAGON_S
+// Carrier thật: NKV (NKV LOGISTICS LTD), VETRANCO_S, VIJACO_S, PHUONGANH, VIJACO_N, DRAGON_S
 const ddps: DDP[] = [
-  buildDDP("DDP-NKV-001", "Nhật Kim Vinh", "NKV", "processing", "27/4/2026", [
-    { modelKey: "NSC110", colorCode: "NHA76", qty: 8 },
-    { modelKey: "NSC110", colorCode: "NHD14", qty: 7 },
-    { modelKey: "AFB110", colorCode: "R368", qty: 8 },
-    { modelKey: "SH125", colorCode: "NHB18", qty: 7 },
-  ]),
+  buildDDP(
+    "DDP-NKV-001",
+    "NKV LOGISTICS LTD (Công ty TNHH Dịch Vụ Tiếp Vận NKV)",
+    "NKV",
+    "processing",
+    "27/4/2026",
+    [
+      { modelKey: "NSC110", colorCode: "YR381", qty: 8 },
+      { modelKey: "NSC110", colorCode: "NHA76", qty: 6 },
+      { modelKey: "AFB110", colorCode: "PB421", qty: 6 },
+      { modelKey: "SH125", colorCode: "NHD03", qty: 5 },
+    ],
+  ),
   buildDDP("DDP-PA-002", "Phương Anh Logistics", "PHUONGANH", "waiting", "27/4/2026", [
-    { modelKey: "ACA125", colorCode: "NHB18", qty: 12 },
-    { modelKey: "AFS125", colorCode: "YR381", qty: 8 },
-    { modelKey: "FSH125", colorCode: "NHA76", qty: 10 },
-    { modelKey: "NHX125", colorCode: "NHD01", qty: 10 },
+    { modelKey: "ACA125", colorCode: "NHB25", qty: 8 },
+    { modelKey: "AFS125", colorCode: "NHC35", qty: 6 },
+    { modelKey: "FSH125", colorCode: "NHB18", qty: 8 },
+    { modelKey: "NHX125", colorCode: "NHA76", qty: 6 },
   ]),
   buildDDP("DDP-VTC-003", "Vetranco South", "VETRANCO_S", "waiting", "27/4/2026", [
-    { modelKey: "SH160", colorCode: "NHC60", qty: 12 },
-    { modelKey: "FS150", colorCode: "PB421", qty: 13 },
-    { modelKey: "ACA160", colorCode: "R389", qty: 10 },
-    { modelKey: "AFP110", colorCode: "R368", qty: 10 },
+    { modelKey: "SH160", colorCode: "NHC60", qty: 6 },
+    { modelKey: "FS150", colorCode: "NHA76", qty: 6 },
+    { modelKey: "ACA160", colorCode: "NHD14", qty: 5 },
+    { modelKey: "AFP110", colorCode: "R368", qty: 5 },
   ]),
   buildDDP("DDP-VJC-004", "Vijaco South", "VIJACO_S", "waiting", "27/4/2026", [
-    { modelKey: "NSC110", colorCode: "YR381", qty: 10 },
-    { modelKey: "SH125", colorCode: "NHC60", qty: 8 },
-    { modelKey: "ACA125", colorCode: "NHA76", qty: 10 },
+    { modelKey: "NSC110", colorCode: "R368", qty: 8 },
+    { modelKey: "SH125", colorCode: "NHD01", qty: 5 },
+    { modelKey: "ACA125", colorCode: "R368", qty: 6 },
   ]),
   buildDDP("DDP-DRG-005", "Dragon South", "DRAGON_S", "waiting", "27/4/2026", [
-    { modelKey: "FSH125", colorCode: "PB421", qty: 8 },
-    { modelKey: "AFB110", colorCode: "NHC26", qty: 10 },
-    { modelKey: "ACB125", colorCode: "NHB25", qty: 6 },
+    { modelKey: "FSH125", colorCode: "NHC60", qty: 6 },
+    { modelKey: "AFB110", colorCode: "NHA76", qty: 8 },
+    { modelKey: "AFS125", colorCode: "PB421", qty: 5 },
   ]),
 ];
 

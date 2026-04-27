@@ -99,7 +99,12 @@ function WarehousePage() {
 
             <SpecialAreasPanel areas={state.specialAreas} />
 
-            <ZoneDistribution zones={state.zones} vehicles={state.vehicles} />
+            <ZoneDistribution
+              zones={state.zones}
+              vehicles={state.vehicles}
+              onZoneClick={(id) => setActiveZoneId(id)}
+              activeZoneId={activeZoneId}
+            />
           </div>
         </div>
       </main>
