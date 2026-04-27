@@ -9,9 +9,10 @@ interface Props {
   onToggleVin: (ddpId: string, lineId: string, vin: string) => void;
   onClearLine: (ddpId: string, lineId: string) => void;
   onAutoSelect: (ddpId: string, lineId: string) => void;
+  onComplete: (ddpId: string) => void;
 }
 
-export function DDPDetailPanel({ ddp, vehicles, onClose, onToggleVin, onClearLine, onAutoSelect }: Props) {
+export function DDPDetailPanel({ ddp, vehicles, onClose, onToggleVin, onClearLine, onAutoSelect, onComplete }: Props) {
   const [tab, setTab] = useState<"overview" | "pick">("overview");
   const [activeLineId, setActiveLineId] = useState<string | null>(null);
 
