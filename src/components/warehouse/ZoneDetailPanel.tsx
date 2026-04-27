@@ -231,3 +231,46 @@ function VehicleListInLane({
     </div>
   );
 }
+
+function MaintenanceView({ zone }: { zone: Zone }) {
+  return (
+    <div className="flex-1 overflow-auto p-6">
+      <div className="rounded-2xl border-2 border-violet-200 bg-violet-50 p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500 text-white">
+            <Wrench className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-base font-semibold text-violet-950">Zone đang bảo trì</div>
+            <div className="text-xs text-violet-900/80">
+              Zone {zone.label} đã đóng cửa, không nhận xe trong thời gian bảo trì.
+            </div>
+          </div>
+        </div>
+        <dl className="mt-5 grid grid-cols-1 gap-3 text-sm">
+          <div className="rounded-lg bg-white p-3">
+            <dt className="text-xs font-medium uppercase text-muted-foreground">Lý do bảo trì</dt>
+            <dd className="mt-1 text-foreground">{zone.maintenanceReason ?? "—"}</dd>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg bg-white p-3">
+              <dt className="text-xs font-medium uppercase text-muted-foreground">Bắt đầu</dt>
+              <dd className="mt-1 font-semibold text-foreground">{zone.maintenanceStart ?? "—"}</dd>
+            </div>
+            <div className="rounded-lg bg-white p-3">
+              <dt className="text-xs font-medium uppercase text-muted-foreground">Dự kiến gỡ bảo trì</dt>
+              <dd className="mt-1 font-semibold text-emerald-700">{zone.maintenanceEnd ?? "—"}</dd>
+            </div>
+          </div>
+          <div className="rounded-lg bg-white p-3">
+            <dt className="text-xs font-medium uppercase text-muted-foreground">Sức chứa khi mở lại</dt>
+            <dd className="mt-1 text-foreground">{zone.capacity} xe · {zone.lanes.length} làn</dd>
+          </div>
+        </dl>
+        <div className="mt-4 rounded-lg bg-white/60 p-3 text-xs text-violet-900/80">
+          💡 Trong thời gian bảo trì, xe MTOC dự kiến vào zone này được tạm dồn sang zone khác. Xem lịch sử từng xe để biết chi tiết.
+        </div>
+      </div>
+    </div>
+  );
+}
