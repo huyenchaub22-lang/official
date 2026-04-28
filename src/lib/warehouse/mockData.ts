@@ -134,12 +134,15 @@ const MODELS: Record<
 };
 
 // ---------- Layout LOG2 ----------
-// Số làn và sức chứa được phân bổ lại cho hợp lý theo diện tích zone.
-// Quy tắc: zone càng rộng → nhiều làn; mỗi làn ~ 14–18 xe.
+// Phân bổ làn & sức chứa từng zone theo diện tích & hình dạng (dài/rộng) trong layout LOG2.
+// Quy tắc:
+//  - Zone NGẮN nhưng RỘNG (vd A12) → nhiều làn, ít xe/làn (vì làn ngắn).
+//  - Zone DÀI nhưng HẸP (vd A13) → ít làn, nhiều xe/làn (vì làn dài).
+//  - Tổng xe của mỗi zone là số chẵn.
 const ZONE_PLAN: Array<{
   id: string;
   laneCount: number;
-  laneCapacity: number; // sức chứa mỗi làn (đồng đều)
+  laneCapacity: number; // sức chứa mỗi làn (đồng đều, đảm bảo capacity chẵn)
   models: string[];
   fillRatio: number;
   status: "normal" | "full" | "maintenance";
@@ -147,27 +150,27 @@ const ZONE_PLAN: Array<{
   maintenanceStart?: string;
   maintenanceEnd?: string;
 }> = [
-  // Hàng dưới
-  { id: "A1", laneCount: 4, laneCapacity: 16, models: ["NSC110"], fillRatio: 0.78, status: "normal" },
-  { id: "A2", laneCount: 6, laneCapacity: 16, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" },
-  { id: "A3", laneCount: 3, laneCapacity: 14, models: ["AFP110"], fillRatio: 0.55, status: "normal" },
-  // Hàng giữa dưới
-  { id: "A4", laneCount: 4, laneCapacity: 15, models: ["FSH125"], fillRatio: 0.85, status: "normal" },
-  { id: "A5", laneCount: 6, laneCapacity: 18, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" },
-  { id: "A6", laneCount: 3, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.6, status: "normal" },
-  // Hàng giữa trên
-  { id: "A7", laneCount: 6, laneCapacity: 16, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" },
+  // Hàng dưới — A1 nhỏ, A2 dài & rộng nhất, A3 ngắn
+  { id: "A1", laneCount: 4, laneCapacity: 12, models: ["NSC110"], fillRatio: 0.78, status: "normal" }, // 48
+  { id: "A2", laneCount: 5, laneCapacity: 20, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" }, // 100
+  { id: "A3", laneCount: 4, laneCapacity: 14, models: ["AFP110"], fillRatio: 0.55, status: "normal" }, // 56
+  // Hàng giữa dưới — A4 nhỏ, A5 lớn nhất (full), A6 vuông
+  { id: "A4", laneCount: 4, laneCapacity: 12, models: ["FSH125"], fillRatio: 0.85, status: "normal" }, // 48
+  { id: "A5", laneCount: 5, laneCapacity: 20, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" }, // 100
+  { id: "A6", laneCount: 4, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.6, status: "normal" }, // 56
+  // Hàng giữa trên — A7 dài, A8 bảo trì, A9 nhỏ
+  { id: "A7", laneCount: 4, laneCapacity: 18, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" }, // 72
   { id: "A8", laneCount: 5, laneCapacity: 16, models: ["ACA160", "ACB125"], fillRatio: 0, status: "maintenance",
     maintenanceReason: "Sửa nền & sơn lại vạch chia làn",
     maintenanceStart: "24/4/2026",
     maintenanceEnd: "29/4/2026",
-  },
-  { id: "A9", laneCount: 3, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.7, status: "normal" },
-  // Hàng trên
-  { id: "A10", laneCount: 6, laneCapacity: 16, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" },
-  { id: "A11", laneCount: 4, laneCapacity: 16, models: ["AFB110"], fillRatio: 0.74, status: "normal" },
-  { id: "A12", laneCount: 5, laneCapacity: 16, models: ["NSC110"], fillRatio: 0.69, status: "normal" },
-  { id: "A13", laneCount: 5, laneCapacity: 16, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" },
+  }, // 80
+  { id: "A9", laneCount: 3, laneCapacity: 12, models: ["NHX125"], fillRatio: 0.7, status: "normal" }, // 36
+  // Hàng trên — A10 ngang, A11 ngang, A12 ngang vuông nhiều làn ngắn, A13 dọc dài
+  { id: "A10", laneCount: 4, laneCapacity: 16, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" }, // 64
+  { id: "A11", laneCount: 4, laneCapacity: 14, models: ["AFB110"], fillRatio: 0.74, status: "normal" }, // 56
+  { id: "A12", laneCount: 6, laneCapacity: 12, models: ["NSC110"], fillRatio: 0.69, status: "normal" }, // 72 — nhiều làn, làn ngắn
+  { id: "A13", laneCount: 5, laneCapacity: 18, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" }, // 90 — ít làn, làn dài
 ];
 
 // ---------- pseudo-random deterministic ----------
