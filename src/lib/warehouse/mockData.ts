@@ -34,15 +34,16 @@ export const COLORS: Array<{ code: string; name: string; hex: string }> = [
   { code: "PB434", name: "Xanh dương đậm", hex: "#1e3a8a" },
 ];
 
-// ---------- Models thật từ CSV ----------
-// Mỗi model có danh sách màu đúng theo dữ liệu xuất kho thực tế
+// ---------- Models thật từ CSV Honda ----------
+// Format đúng: MODEL_CODE + TYPE_CODE (vd: NSC110 K2CN), OPTION_CODE (vd: V02, có thể trống),
+// COLOR_CODE (vd: R368). "option: """ nghĩa là option trống/full.
 const MODELS: Record<
   string,
   {
     code: string;
     name: string;
     type: string;
-    option: string;
+    option: string; // "" = trống/full
     colors: string[]; // các COLOR_CODE thực tế
   }
 > = {
@@ -50,14 +51,14 @@ const MODELS: Record<
     code: "NSC110",
     name: "Vision",
     type: "K2CN",
-    option: "V03",
+    option: "V02",
     colors: ["YR381", "R368", "NHA76", "NHB18", "NHC60", "NHD01"],
   },
   ACA125: {
     code: "ACA125",
     name: "Air Blade 125",
     type: "K3AG",
-    option: "V01",
+    option: "",
     colors: ["NHB25", "R368", "NHA76", "NHC60", "NHD14", "PB434"],
   },
   AFS125: {
@@ -71,7 +72,7 @@ const MODELS: Record<
     code: "FSH125",
     name: "Future 125",
     type: "K1NG",
-    option: "V13",
+    option: "",
     colors: ["NHB18", "NHC60", "NHB35", "R368", "NHA76", "PB421"],
   },
   AFB110: {
@@ -99,7 +100,7 @@ const MODELS: Record<
     code: "SH160",
     name: "SH 160",
     type: "K0SP",
-    option: "V05",
+    option: "",
     colors: ["NHC60", "NHD03", "NHD14", "NHD01", "GY163", "R368"],
   },
   ACA160: {
@@ -113,7 +114,7 @@ const MODELS: Record<
     code: "AFP110",
     name: "Wave RSX",
     type: "K90P",
-    option: "V01",
+    option: "",
     colors: ["R368", "NHC60", "NHB25", "PB421"],
   },
   FS150: {
