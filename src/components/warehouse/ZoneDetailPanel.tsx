@@ -94,7 +94,7 @@ function LaneList({
   return (
     <div className="flex-1 overflow-auto p-4">
       <p className="mb-3 text-xs text-muted-foreground">
-        Mỗi làn gom xe cùng <span className="font-semibold text-foreground">model + màu</span> (có thể lệch 1–2 xe do dồn kho). Click vào làn để xem chi tiết xe.
+        Mỗi làn gom xe cùng <span className="font-semibold text-foreground">model + màu</span>. Click vào làn để xem chi tiết xe.
       </p>
       <div className="grid gap-3">
         {zone.lanes.map((lane) => {
@@ -102,10 +102,6 @@ function LaneList({
           const ratio = vs.length / lane.capacity;
           const tier = getFillTier(ratio);
           const colorObj = COLORS.find((c) => c.code === lane.primaryColorCode);
-          // Count how many vehicles in lane don't match the primary signature
-          const drift = vs.filter(
-            (v) => v.modelCode !== lane.primaryModelCode || v.colorCode !== lane.primaryColorCode,
-          ).length;
           return (
             <button
               key={lane.id}
@@ -143,13 +139,7 @@ function LaneList({
                   </div>
                 </div>
                 <div className="text-right text-xs">
-                  {drift > 0 ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
-                      Lệch {drift} xe (dồn kho)
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Đồng nhất</span>
-                  )}
+                  <span className="text-muted-foreground">{vs.length} xe</span>
                 </div>
               </div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -182,8 +172,6 @@ function VehicleListInLane({
       </p>
       <div className="space-y-2">
         {vehicles.map((v) => {
-          const isOutlier =
-            v.modelCode !== lane.primaryModelCode || v.colorCode !== lane.primaryColorCode;
           return (
             <div
               key={v.vin}
@@ -193,11 +181,6 @@ function VehicleListInLane({
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-foreground">{v.modelName}</span>
-                    {isOutlier && (
-                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
-                        Lệch (dồn kho)
-                      </span>
-                    )}
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                     <span
@@ -205,14 +188,18 @@ function VehicleListInLane({
                       style={{ backgroundColor: v.colorHex }}
                     />
                     <span>{v.colorName}</span>
-                    <span>·</span>
-                    <span>{v.optionCode}</span>
+                    {v.optionCode && (
+                      <>
+                        <span>·</span>
+                        <span>Option: {v.optionCode}</span>
+                      </>
+                    )}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
                     VIN: <span className="font-mono text-foreground">{v.vin}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Model: {v.modelCode} {v.typeCode} · Nhập: {v.arrivedAt}
+                    Model: {v.modelCode} {v.typeCode} · Màu: {v.colorCode} · Nhập: {v.arrivedAt}
                   </div>
                 </div>
                 <button

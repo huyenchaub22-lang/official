@@ -192,7 +192,7 @@ function OverviewTab({ ddp, onJumpPick }: { ddp: DDP; onJumpPick: (lineId: strin
                         {it.modelName} · {it.colorName}
                       </div>
                       <div className="text-[11px] text-muted-foreground">
-                        {it.modelCode} {it.typeCode} / {it.optionCode} / {it.colorCode}
+                        {it.modelCode} {it.typeCode} / {it.optionCode || "(option trống)"} / {it.colorCode}
                       </div>
                       <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
                         Gợi ý lấy ở:
@@ -403,7 +403,7 @@ function LineHeader({
             </span>
           </div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
-            {item.modelCode} {item.typeCode} / {item.optionCode} / {item.colorCode}
+            {item.modelCode} {item.typeCode} / {item.optionCode || "(option trống)"} / {item.colorCode}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">Yêu cầu: {item.qty} xe</span>

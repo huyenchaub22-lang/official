@@ -31,7 +31,20 @@ interface Props {
 }
 
 export function SpecialAreasPanel({ areas }: Props) {
-  const [requestSent, setRequestSent] = useState(false);
+  const [vinInput, setVinInput] = useState("");
+  const [requestMsg, setRequestMsg] = useState<string | null>(null);
+
+  function handleRequest() {
+    const vin = vinInput.trim().toUpperCase();
+    if (!vin) {
+      setRequestMsg("⚠ Vui lòng nhập số VIN của xe NG cần sửa chữa");
+      setTimeout(() => setRequestMsg(null), 3000);
+      return;
+    }
+    setRequestMsg(`✓ Đã gửi yêu cầu nhà máy sửa chữa cho VIN ${vin}`);
+    setVinInput("");
+    setTimeout(() => setRequestMsg(null), 4000);
+  }
 
   return (
     <section className="rounded-2xl border bg-card p-4 shadow-sm">
@@ -64,30 +77,31 @@ export function SpecialAreasPanel({ areas }: Props) {
               <p className="mt-3 flex-1 text-[11px] leading-snug text-foreground/70">{a.longDesc}</p>
 
               {a.id === "MAINT" && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRequestSent(true);
-                    setTimeout(() => setRequestSent(false), 3000);
-                  }}
-                  className={`mt-3 flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    requestSent
-                      ? "bg-emerald-500 text-white"
-                      : "bg-amber-500 text-white hover:bg-amber-600"
-                  }`}
-                >
-                  {requestSent ? (
-                    <>
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Đã gửi yêu cầu
-                    </>
-                  ) : (
-                    <>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={vinInput}
+                      onChange={(e) => setVinInput(e.target.value)}
+                      placeholder="Nhập VIN xe NG cần sửa..."
+                      className="min-w-0 flex-1 rounded-md border border-amber-300 bg-white px-2 py-1.5 font-mono text-xs outline-none ring-amber-400/40 focus:ring-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRequest}
+                      className="flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+                    >
                       <Send className="h-3.5 w-3.5" />
-                      Yêu cầu nhà máy sửa chữa
-                    </>
+                      Y/c sửa chữa
+                    </button>
+                  </div>
+                  {requestMsg && (
+                    <div className="flex items-center gap-1 text-[11px] text-amber-900">
+                      {requestMsg.startsWith("✓") && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
+                      {requestMsg}
+                    </div>
                   )}
-                </button>
+                </div>
               )}
             </div>
           );

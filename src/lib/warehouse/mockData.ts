@@ -34,15 +34,16 @@ export const COLORS: Array<{ code: string; name: string; hex: string }> = [
   { code: "PB434", name: "Xanh dương đậm", hex: "#1e3a8a" },
 ];
 
-// ---------- Models thật từ CSV ----------
-// Mỗi model có danh sách màu đúng theo dữ liệu xuất kho thực tế
+// ---------- Models thật từ CSV Honda ----------
+// Format đúng: MODEL_CODE + TYPE_CODE (vd: NSC110 K2CN), OPTION_CODE (vd: V02, có thể trống),
+// COLOR_CODE (vd: R368). "option: """ nghĩa là option trống/full.
 const MODELS: Record<
   string,
   {
     code: string;
     name: string;
     type: string;
-    option: string;
+    option: string; // "" = trống/full
     colors: string[]; // các COLOR_CODE thực tế
   }
 > = {
@@ -50,14 +51,14 @@ const MODELS: Record<
     code: "NSC110",
     name: "Vision",
     type: "K2CN",
-    option: "V03",
+    option: "V02",
     colors: ["YR381", "R368", "NHA76", "NHB18", "NHC60", "NHD01"],
   },
   ACA125: {
     code: "ACA125",
     name: "Air Blade 125",
     type: "K3AG",
-    option: "V01",
+    option: "",
     colors: ["NHB25", "R368", "NHA76", "NHC60", "NHD14", "PB434"],
   },
   AFS125: {
@@ -71,7 +72,7 @@ const MODELS: Record<
     code: "FSH125",
     name: "Future 125",
     type: "K1NG",
-    option: "V13",
+    option: "",
     colors: ["NHB18", "NHC60", "NHB35", "R368", "NHA76", "PB421"],
   },
   AFB110: {
@@ -99,7 +100,7 @@ const MODELS: Record<
     code: "SH160",
     name: "SH 160",
     type: "K0SP",
-    option: "V05",
+    option: "",
     colors: ["NHC60", "NHD03", "NHD14", "NHD01", "GY163", "R368"],
   },
   ACA160: {
@@ -113,7 +114,7 @@ const MODELS: Record<
     code: "AFP110",
     name: "Wave RSX",
     type: "K90P",
-    option: "V01",
+    option: "",
     colors: ["R368", "NHC60", "NHB25", "PB421"],
   },
   FS150: {
@@ -133,12 +134,15 @@ const MODELS: Record<
 };
 
 // ---------- Layout LOG2 ----------
-// Số làn và sức chứa được phân bổ lại cho hợp lý theo diện tích zone.
-// Quy tắc: zone càng rộng → nhiều làn; mỗi làn ~ 14–18 xe.
+// Phân bổ làn & sức chứa từng zone theo diện tích & hình dạng (dài/rộng) trong layout LOG2.
+// Quy tắc:
+//  - Zone NGẮN nhưng RỘNG (vd A12) → nhiều làn, ít xe/làn (vì làn ngắn).
+//  - Zone DÀI nhưng HẸP (vd A13) → ít làn, nhiều xe/làn (vì làn dài).
+//  - Tổng xe của mỗi zone là số chẵn.
 const ZONE_PLAN: Array<{
   id: string;
   laneCount: number;
-  laneCapacity: number; // sức chứa mỗi làn (đồng đều)
+  laneCapacity: number; // sức chứa mỗi làn (đồng đều, đảm bảo capacity chẵn)
   models: string[];
   fillRatio: number;
   status: "normal" | "full" | "maintenance";
@@ -146,27 +150,27 @@ const ZONE_PLAN: Array<{
   maintenanceStart?: string;
   maintenanceEnd?: string;
 }> = [
-  // Hàng dưới
-  { id: "A1", laneCount: 4, laneCapacity: 16, models: ["NSC110"], fillRatio: 0.78, status: "normal" },
-  { id: "A2", laneCount: 6, laneCapacity: 16, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" },
-  { id: "A3", laneCount: 3, laneCapacity: 14, models: ["AFP110"], fillRatio: 0.55, status: "normal" },
-  // Hàng giữa dưới
-  { id: "A4", laneCount: 4, laneCapacity: 15, models: ["FSH125"], fillRatio: 0.85, status: "normal" },
-  { id: "A5", laneCount: 6, laneCapacity: 18, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" },
-  { id: "A6", laneCount: 3, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.6, status: "normal" },
-  // Hàng giữa trên
-  { id: "A7", laneCount: 6, laneCapacity: 16, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" },
+  // Hàng dưới — A1 nhỏ, A2 dài & rộng nhất, A3 ngắn
+  { id: "A1", laneCount: 4, laneCapacity: 12, models: ["NSC110"], fillRatio: 0.78, status: "normal" }, // 48
+  { id: "A2", laneCount: 5, laneCapacity: 20, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" }, // 100
+  { id: "A3", laneCount: 4, laneCapacity: 14, models: ["AFP110"], fillRatio: 0.55, status: "normal" }, // 56
+  // Hàng giữa dưới — A4 nhỏ, A5 lớn nhất (full), A6 vuông
+  { id: "A4", laneCount: 4, laneCapacity: 12, models: ["FSH125"], fillRatio: 0.85, status: "normal" }, // 48
+  { id: "A5", laneCount: 5, laneCapacity: 20, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" }, // 100
+  { id: "A6", laneCount: 4, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.6, status: "normal" }, // 56
+  // Hàng giữa trên — A7 dài, A8 bảo trì, A9 nhỏ
+  { id: "A7", laneCount: 4, laneCapacity: 18, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" }, // 72
   { id: "A8", laneCount: 5, laneCapacity: 16, models: ["ACA160", "ACB125"], fillRatio: 0, status: "maintenance",
     maintenanceReason: "Sửa nền & sơn lại vạch chia làn",
     maintenanceStart: "24/4/2026",
     maintenanceEnd: "29/4/2026",
-  },
-  { id: "A9", laneCount: 3, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.7, status: "normal" },
-  // Hàng trên
-  { id: "A10", laneCount: 6, laneCapacity: 16, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" },
-  { id: "A11", laneCount: 4, laneCapacity: 16, models: ["AFB110"], fillRatio: 0.74, status: "normal" },
-  { id: "A12", laneCount: 5, laneCapacity: 16, models: ["NSC110"], fillRatio: 0.69, status: "normal" },
-  { id: "A13", laneCount: 5, laneCapacity: 16, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" },
+  }, // 80
+  { id: "A9", laneCount: 3, laneCapacity: 12, models: ["NHX125"], fillRatio: 0.7, status: "normal" }, // 36
+  // Hàng trên — A10 ngang, A11 ngang, A12 ngang vuông nhiều làn ngắn, A13 dọc dài
+  { id: "A10", laneCount: 4, laneCapacity: 16, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" }, // 64
+  { id: "A11", laneCount: 4, laneCapacity: 14, models: ["AFB110"], fillRatio: 0.74, status: "normal" }, // 56
+  { id: "A12", laneCount: 6, laneCapacity: 12, models: ["NSC110"], fillRatio: 0.69, status: "normal" }, // 72 — nhiều làn, làn ngắn
+  { id: "A13", laneCount: 5, laneCapacity: 18, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" }, // 90 — ít làn, làn dài
 ];
 
 // ---------- pseudo-random deterministic ----------
@@ -455,11 +459,9 @@ function buildDDP(
       if (!color) return null;
       const suggestedZoneId = findZoneForMTOC(m.code, color.code);
       if (!suggestedZoneId) return null; // bỏ MTOC không có xe trong layout
-      // Giới hạn qty bằng số xe thực có
-      const available = vehicles.filter(
-        (v) => v.status === "in_zone" && v.modelCode === m.code && v.colorCode === color.code,
-      ).length;
-      const qty = Math.min(spec.qty, available);
+      // Giữ nguyên qty yêu cầu của đơn hàng (không cắt theo tồn kho).
+      // Gợi ý xe vẫn được tìm đầy đủ trong layout (đảm bảo có suggestedZoneId).
+      const qty = spec.qty;
       if (qty <= 0) return null;
       return {
         id: `${id}-line-${idx}`,
@@ -482,6 +484,7 @@ function buildDDP(
 
 // Carrier thật: NKV (NKV LOGISTICS LTD), VETRANCO_S, VIJACO_S, PHUONGANH, VIJACO_N, DRAGON_S
 const ddps: DDP[] = [
+  // 50 xe
   buildDDP(
     "DDP-NKV-001",
     "NKV LOGISTICS LTD (Công ty TNHH Dịch Vụ Tiếp Vận NKV)",
@@ -489,33 +492,37 @@ const ddps: DDP[] = [
     "processing",
     "27/4/2026",
     [
-      { modelKey: "NSC110", colorCode: "YR381", qty: 8 },
-      { modelKey: "NSC110", colorCode: "NHA76", qty: 6 },
-      { modelKey: "AFB110", colorCode: "PB421", qty: 6 },
-      { modelKey: "SH125", colorCode: "NHD03", qty: 5 },
+      { modelKey: "NSC110", colorCode: "YR381", qty: 14 },
+      { modelKey: "NSC110", colorCode: "NHA76", qty: 12 },
+      { modelKey: "AFB110", colorCode: "PB421", qty: 12 },
+      { modelKey: "SH125", colorCode: "NHD03", qty: 12 },
     ],
   ),
+  // 40 xe
   buildDDP("DDP-PA-002", "Phương Anh Logistics", "PHUONGANH", "waiting", "27/4/2026", [
-    { modelKey: "ACA125", colorCode: "NHB25", qty: 8 },
-    { modelKey: "AFS125", colorCode: "NHC35", qty: 6 },
-    { modelKey: "FSH125", colorCode: "NHB18", qty: 8 },
-    { modelKey: "NHX125", colorCode: "NHA76", qty: 6 },
+    { modelKey: "ACA125", colorCode: "NHB25", qty: 12 },
+    { modelKey: "AFS125", colorCode: "NHC35", qty: 10 },
+    { modelKey: "FSH125", colorCode: "NHB18", qty: 10 },
+    { modelKey: "NHX125", colorCode: "NHA76", qty: 8 },
   ]),
+  // 30 xe
   buildDDP("DDP-VTC-003", "Vetranco South", "VETRANCO_S", "waiting", "27/4/2026", [
-    { modelKey: "SH160", colorCode: "NHC60", qty: 6 },
-    { modelKey: "FS150", colorCode: "NHA76", qty: 6 },
-    { modelKey: "ACA160", colorCode: "NHD14", qty: 5 },
-    { modelKey: "AFP110", colorCode: "R368", qty: 5 },
+    { modelKey: "SH160", colorCode: "NHC60", qty: 10 },
+    { modelKey: "FS150", colorCode: "NHA76", qty: 8 },
+    { modelKey: "ACA160", colorCode: "NHD14", qty: 6 },
+    { modelKey: "AFP110", colorCode: "R368", qty: 6 },
   ]),
+  // 40 xe
   buildDDP("DDP-VJC-004", "Vijaco South", "VIJACO_S", "waiting", "27/4/2026", [
-    { modelKey: "NSC110", colorCode: "R368", qty: 8 },
-    { modelKey: "SH125", colorCode: "NHD01", qty: 5 },
-    { modelKey: "ACA125", colorCode: "R368", qty: 6 },
+    { modelKey: "NSC110", colorCode: "R368", qty: 16 },
+    { modelKey: "SH125", colorCode: "NHD01", qty: 12 },
+    { modelKey: "ACA125", colorCode: "R368", qty: 12 },
   ]),
+  // 50 xe
   buildDDP("DDP-DRG-005", "Dragon South", "DRAGON_S", "waiting", "27/4/2026", [
-    { modelKey: "FSH125", colorCode: "NHC60", qty: 6 },
-    { modelKey: "AFB110", colorCode: "NHA76", qty: 8 },
-    { modelKey: "AFS125", colorCode: "PB421", qty: 5 },
+    { modelKey: "FSH125", colorCode: "NHC60", qty: 16 },
+    { modelKey: "AFB110", colorCode: "NHA76", qty: 18 },
+    { modelKey: "AFS125", colorCode: "PB421", qty: 16 },
   ]),
 ];
 
