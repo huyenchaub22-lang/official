@@ -176,8 +176,6 @@ function VehicleListInLane({
       </p>
       <div className="space-y-2">
         {vehicles.map((v) => {
-          const isOutlier =
-            v.modelCode !== lane.primaryModelCode || v.colorCode !== lane.primaryColorCode;
           return (
             <div
               key={v.vin}
@@ -187,11 +185,6 @@ function VehicleListInLane({
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-foreground">{v.modelName}</span>
-                    {isOutlier && (
-                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
-                        Lệch (dồn kho)
-                      </span>
-                    )}
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                     <span
@@ -199,14 +192,18 @@ function VehicleListInLane({
                       style={{ backgroundColor: v.colorHex }}
                     />
                     <span>{v.colorName}</span>
-                    <span>·</span>
-                    <span>{v.optionCode}</span>
+                    {v.optionCode && (
+                      <>
+                        <span>·</span>
+                        <span>Option: {v.optionCode}</span>
+                      </>
+                    )}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
                     VIN: <span className="font-mono text-foreground">{v.vin}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Model: {v.modelCode} {v.typeCode} · Nhập: {v.arrivedAt}
+                    Model: {v.modelCode} {v.typeCode} · Màu: {v.colorCode} · Nhập: {v.arrivedAt}
                   </div>
                 </div>
                 <button
