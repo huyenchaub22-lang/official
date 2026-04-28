@@ -539,4 +539,31 @@ export function getVehicleByVin(vin: string): Vehicle | undefined {
   return vehicles.find((v) => v.vin === vin);
 }
 
+export function lookupColor(code: string): { code: string; name: string; hex: string } | undefined {
+  return COLORS.find((c) => c.code === code);
+}
+
+export function findZoneForVehicleType(
+  vehicleList: Vehicle[],
+  modelCode: string,
+  colorCode: string,
+): string | undefined {
+  // Đếm xe trong layout theo từng zone, trả zone có nhiều xe khớp nhất
+  const counts = new Map<string, number>();
+  vehicleList.forEach((v) => {
+    if (v.status === "in_zone" && v.modelCode === modelCode && v.colorCode === colorCode && v.zoneId) {
+      counts.set(v.zoneId, (counts.get(v.zoneId) ?? 0) + 1);
+    }
+  });
+  let best: string | undefined;
+  let max = 0;
+  counts.forEach((n, z) => {
+    if (n > max) {
+      max = n;
+      best = z;
+    }
+  });
+  return best;
+}
+
 export { fmtDate };
