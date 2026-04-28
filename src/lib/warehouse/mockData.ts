@@ -433,10 +433,16 @@ const specialAreas: SpecialArea[] = [
 // Chỉ build dòng MTOC nếu trong layout TỒN TẠI ít nhất 1 xe khớp (model + màu).
 // → Đảm bảo "không bao giờ" gặp trường hợp không có gợi ý.
 function findZoneForMTOC(modelCode: string, colorCode: string): string | undefined {
-  const v = vehicles.find(
+  // Ưu tiên zone có đúng MTOC (model + color)
+  const exact = vehicles.find(
     (vv) => vv.status === "in_zone" && vv.modelCode === modelCode && vv.colorCode === colorCode,
   );
-  return v?.zoneId;
+  if (exact?.zoneId) return exact.zoneId;
+  // Fallback: zone bất kỳ có model này (giữ MTOC trong đơn — tránh bị cắt)
+  const sameModel = vehicles.find(
+    (vv) => vv.status === "in_zone" && vv.modelCode === modelCode,
+  );
+  return sameModel?.zoneId;
 }
 
 interface DDPItemSpec {
