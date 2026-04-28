@@ -60,7 +60,7 @@ export function Sidebar({
     reader.onload = () => {
       const text = String(reader.result ?? "");
       try {
-        const ddp = parseDDPFile(file.name, text);
+        const ddp = parseDDPFile(file.name, text, vehicles);
         onUploadDDP(ddp);
         setUploadMsg(`✓ Đã nhập ${ddp.id} (${ddp.totalQty} xe, ${ddp.items.length} MTOC)`);
         setTimeout(() => setUploadMsg(null), 4000);
