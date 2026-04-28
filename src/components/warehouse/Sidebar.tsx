@@ -228,7 +228,7 @@ function statusLabel(s: Vehicle["status"]) {
 }
 
 // Parse a CSV/TSV DDP file into a DDP object.
-function parseDDPFile(fileName: string, text: string): DDP {
+function parseDDPFile(fileName: string, text: string, vehicles: Vehicle[]): DDP {
   // detect delimiter
   const firstLine = text.split(/\r?\n/)[0] ?? "";
   const delim = firstLine.includes("\t") ? "\t" : ",";
@@ -262,29 +262,37 @@ function parseDDPFile(fileName: string, text: string): DDP {
     const optionCode = iOption >= 0 ? (cells[iOption] ?? "").trim() : "";
     if (iTrans >= 0 && cells[iTrans]) carriers.add(cells[iTrans]);
 
-    const key = `${modelCode}|${typeCode}|${colorCode}`;
+    // Gộp đúng theo MTOC: model + type + option + color, cộng dồn qty thực tế trong file.
+    const key = `${modelCode}|${typeCode}|${optionCode}|${colorCode}`;
     const cur = map.get(key);
     if (cur) cur.qty += qty;
     else map.set(key, { modelCode, typeCode, optionCode, colorCode, qty });
   }
 
+  if (map.size === 0) throw new Error("Không có dòng dữ liệu hợp lệ");
+
   const carrierCode = Array.from(carriers)[0] ?? "UPLOAD";
   const id = `DDP-${carrierCode}-${Date.now().toString().slice(-4)}`;
 
-  // We need color name/hex; fall back to gray if unknown
-  const items = Array.from(map.values()).map((a, idx2) => ({
-    id: `${id}-line-${idx2}`,
-    modelName: a.modelCode,
-    modelCode: a.modelCode,
-    typeCode: a.typeCode,
-    optionCode: a.optionCode,
-    colorCode: a.colorCode,
-    colorName: a.colorCode,
-    colorHex: "#9ca3af",
-    qty: a.qty,
-    suggestedZoneId: "A1",
-    selectedVins: [] as string[],
-  }));
+  // Map đúng tên/mã/hex màu, và tìm zone gợi ý theo tồn kho thật.
+  const items = Array.from(map.values()).map((a, idx2) => {
+    const color = lookupColor(a.colorCode);
+    const suggestedZoneId =
+      findZoneForVehicleType(vehicles, a.modelCode, a.colorCode) ?? "—";
+    return {
+      id: `${id}-line-${idx2}`,
+      modelName: a.modelCode,
+      modelCode: a.modelCode,
+      typeCode: a.typeCode,
+      optionCode: a.optionCode,
+      colorCode: a.colorCode,
+      colorName: color?.name ?? a.colorCode,
+      colorHex: color?.hex ?? "#9ca3af",
+      qty: a.qty,
+      suggestedZoneId,
+      selectedVins: [] as string[],
+    };
+  });
 
   const totalQty = items.reduce((s, it) => s + it.qty, 0);
 
