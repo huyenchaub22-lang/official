@@ -505,9 +505,9 @@ const ddps: DDP[] = [
     { modelKey: "FSH125", colorCode: "NHB18", qty: 10 },
     { modelKey: "NHX125", colorCode: "NHA76", qty: 8 },
   ]),
-  // 30 xe
+  // 28 xe
   buildDDP("DDP-VTC-003", "Vetranco South", "VETRANCO_S", "waiting", "27/4/2026", [
-    { modelKey: "SH160", colorCode: "NHC60", qty: 10 },
+    { modelKey: "SH160", colorCode: "NHC60", qty: 8 },
     { modelKey: "FS150", colorCode: "NHA76", qty: 8 },
     { modelKey: "ACA160", colorCode: "NHD14", qty: 6 },
     { modelKey: "AFP110", colorCode: "R368", qty: 6 },
