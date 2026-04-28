@@ -143,13 +143,7 @@ function LaneList({
                   </div>
                 </div>
                 <div className="text-right text-xs">
-                  {drift > 0 ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
-                      Lệch {drift} xe (dồn kho)
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Đồng nhất</span>
-                  )}
+                  <span className="text-muted-foreground">{vs.length} xe</span>
                 </div>
               </div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
