@@ -102,10 +102,6 @@ function LaneList({
           const ratio = vs.length / lane.capacity;
           const tier = getFillTier(ratio);
           const colorObj = COLORS.find((c) => c.code === lane.primaryColorCode);
-          // Count how many vehicles in lane don't match the primary signature
-          const drift = vs.filter(
-            (v) => v.modelCode !== lane.primaryModelCode || v.colorCode !== lane.primaryColorCode,
-          ).length;
           return (
             <button
               key={lane.id}
