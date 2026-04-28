@@ -192,7 +192,7 @@ function OverviewTab({ ddp, onJumpPick }: { ddp: DDP; onJumpPick: (lineId: strin
                         {it.modelName} · {it.colorName}
                       </div>
                       <div className="text-[11px] text-muted-foreground">
-                        {it.modelCode} {it.typeCode} / {it.optionCode} / {it.colorCode}
+                        {it.modelCode} {it.typeCode} / {it.optionCode || "(option trống)"} / {it.colorCode}
                       </div>
                       <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
                         Gợi ý lấy ở:
