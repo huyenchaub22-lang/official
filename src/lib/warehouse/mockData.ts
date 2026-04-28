@@ -505,9 +505,9 @@ const ddps: DDP[] = [
     { modelKey: "FSH125", colorCode: "NHB18", qty: 10 },
     { modelKey: "NHX125", colorCode: "NHA76", qty: 8 },
   ]),
-  // 30 xe
+  // 28 xe
   buildDDP("DDP-VTC-003", "Vetranco South", "VETRANCO_S", "waiting", "27/4/2026", [
-    { modelKey: "SH160", colorCode: "NHC60", qty: 10 },
+    { modelKey: "SH160", colorCode: "NHC60", qty: 8 },
     { modelKey: "FS150", colorCode: "NHA76", qty: 8 },
     { modelKey: "ACA160", colorCode: "NHD14", qty: 6 },
     { modelKey: "AFP110", colorCode: "R368", qty: 6 },
@@ -537,6 +537,33 @@ export const totalInLayout = vehicles.filter((v) => v.status === "in_zone").leng
 
 export function getVehicleByVin(vin: string): Vehicle | undefined {
   return vehicles.find((v) => v.vin === vin);
+}
+
+export function lookupColor(code: string): { code: string; name: string; hex: string } | undefined {
+  return COLORS.find((c) => c.code === code);
+}
+
+export function findZoneForVehicleType(
+  vehicleList: Vehicle[],
+  modelCode: string,
+  colorCode: string,
+): string | undefined {
+  // Đếm xe trong layout theo từng zone, trả zone có nhiều xe khớp nhất
+  const counts = new Map<string, number>();
+  vehicleList.forEach((v) => {
+    if (v.status === "in_zone" && v.modelCode === modelCode && v.colorCode === colorCode && v.zoneId) {
+      counts.set(v.zoneId, (counts.get(v.zoneId) ?? 0) + 1);
+    }
+  });
+  let best: string | undefined;
+  let max = 0;
+  counts.forEach((n, z) => {
+    if (n > max) {
+      max = n;
+      best = z;
+    }
+  });
+  return best;
 }
 
 export { fmtDate };

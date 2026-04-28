@@ -90,7 +90,7 @@ export function DDPDetailPanel({ ddp, vehicles, onClose, onToggleVin, onClearLin
         <footer className="grid grid-cols-2 gap-2 border-t p-4">
           <button
             type="button"
-            onClick={() => exportDDPToCSV(ddp)}
+            onClick={() => exportDDPToCSV(ddp, vehicles)}
             disabled={totalSelected === 0}
             className="flex items-center justify-center gap-2 rounded-md border bg-background px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
           >
@@ -118,17 +118,51 @@ export function DDPDetailPanel({ ddp, vehicles, onClose, onToggleVin, onClearLin
   );
 }
 
-function exportDDPToCSV(ddp: DDP) {
+function exportDDPToCSV(ddp: DDP, vehicles: Vehicle[]) {
+  const vinMap = new Map(vehicles.map((v) => [v.vin, v]));
   const rows: string[] = [];
-  rows.push(["DDP_ID", "CARRIER", "LINE_ID", "MODEL_CODE", "TYPE_CODE", "OPTION_CODE", "COLOR_CODE", "COLOR_NAME", "QTY", "VIN", "SUGGESTED_ZONE"].join(","));
+  rows.push(
+    [
+      "DDP_ID",
+      "CARRIER",
+      "LINE_ID",
+      "MODEL_CODE",
+      "TYPE_CODE",
+      "OPTION_CODE",
+      "COLOR_CODE",
+      "COLOR_NAME",
+      "VIN",
+      "ACTUAL_ZONE",
+      "ACTUAL_LANE",
+      "ARRIVED_AT",
+    ].join(","),
+  );
+  // Chỉ export các xe ĐÃ được chọn — đúng VIN, đúng zone/lane thực tế.
   ddp.items.forEach((it) => {
-    if (it.selectedVins.length === 0) {
-      rows.push([ddp.id, ddp.carrier, it.id, it.modelCode, it.typeCode, it.optionCode, it.colorCode, it.colorName, String(it.qty), "", it.suggestedZoneId].join(","));
-    } else {
-      it.selectedVins.forEach((vin) => {
-        rows.push([ddp.id, ddp.carrier, it.id, it.modelCode, it.typeCode, it.optionCode, it.colorCode, it.colorName, "1", vin, it.suggestedZoneId].join(","));
-      });
-    }
+    it.selectedVins.forEach((vin) => {
+      const v = vinMap.get(vin);
+      const zone = v?.zoneId ?? "";
+      const lane = v?.laneId ?? "";
+      const arrived = v?.arrivedAt ?? "";
+      rows.push(
+        [
+          ddp.id,
+          ddp.carrier,
+          it.id,
+          it.modelCode,
+          it.typeCode,
+          it.optionCode,
+          it.colorCode,
+          it.colorName,
+          vin,
+          zone,
+          lane,
+          arrived,
+        ]
+          .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+          .join(","),
+      );
+    });
   });
   const csv = rows.join("\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
