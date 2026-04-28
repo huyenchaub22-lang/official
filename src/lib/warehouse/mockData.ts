@@ -459,11 +459,9 @@ function buildDDP(
       if (!color) return null;
       const suggestedZoneId = findZoneForMTOC(m.code, color.code);
       if (!suggestedZoneId) return null; // bỏ MTOC không có xe trong layout
-      // Giới hạn qty bằng số xe thực có
-      const available = vehicles.filter(
-        (v) => v.status === "in_zone" && v.modelCode === m.code && v.colorCode === color.code,
-      ).length;
-      const qty = Math.min(spec.qty, available);
+      // Giữ nguyên qty yêu cầu của đơn hàng (không cắt theo tồn kho).
+      // Gợi ý xe vẫn được tìm đầy đủ trong layout (đảm bảo có suggestedZoneId).
+      const qty = spec.qty;
       if (qty <= 0) return null;
       return {
         id: `${id}-line-${idx}`,
