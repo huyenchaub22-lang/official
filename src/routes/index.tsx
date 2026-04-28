@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Boxes } from "lucide-react";
 import { useWarehouseState } from "@/lib/warehouse/useWarehouseState";
 import { totalCapacity } from "@/lib/warehouse/mockData";
 import { WarehouseMap } from "@/components/warehouse/WarehouseMap";
@@ -10,6 +9,7 @@ import { DDPDetailPanel } from "@/components/warehouse/DDPDetailPanel";
 import { Sidebar } from "@/components/warehouse/Sidebar";
 import { SpecialAreasPanel } from "@/components/warehouse/SpecialAreasPanel";
 import { ZoneDistribution } from "@/components/warehouse/ZoneDistribution";
+import hondaLogo from "@/assets/honda-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
