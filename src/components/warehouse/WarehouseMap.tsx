@@ -188,10 +188,10 @@ function FixedCell({
 
 function Legend() {
   const items: Array<{ label: string; cls: string }> = [
-    { label: "≤40%", cls: "bg-emerald-500" },
-    { label: "41–75%", cls: "bg-amber-500" },
-    { label: "76–99%", cls: "bg-orange-500" },
-    { label: "Full", cls: "bg-red-500" },
+    { label: "≤40%", cls: "bg-emerald-300" },
+    { label: "41–75%", cls: "bg-emerald-500" },
+    { label: "76–99%", cls: "bg-emerald-700" },
+    { label: "Full", cls: "bg-emerald-950" },
     { label: "Bảo trì", cls: "bg-violet-500" },
   ];
   return (
