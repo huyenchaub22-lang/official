@@ -90,7 +90,7 @@ export function DDPDetailPanel({ ddp, vehicles, onClose, onToggleVin, onClearLin
         <footer className="grid grid-cols-2 gap-2 border-t p-4">
           <button
             type="button"
-            onClick={() => exportDDPToCSV(ddp)}
+            onClick={() => exportDDPToCSV(ddp, vehicles)}
             disabled={totalSelected === 0}
             className="flex items-center justify-center gap-2 rounded-md border bg-background px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
           >
