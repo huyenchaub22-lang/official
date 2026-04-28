@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { FileSpreadsheet, History, Search, Upload, X } from "lucide-react";
 import type { DDP, Vehicle } from "@/lib/warehouse/types";
+import { lookupColor, findZoneForVehicleType } from "@/lib/warehouse/mockData";
 
 interface SidebarProps {
   ddps: DDP[];
