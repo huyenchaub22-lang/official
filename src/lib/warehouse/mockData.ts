@@ -486,6 +486,7 @@ function buildDDP(
 
 // Carrier thật: NKV (NKV LOGISTICS LTD), VETRANCO_S, VIJACO_S, PHUONGANH, VIJACO_N, DRAGON_S
 const ddps: DDP[] = [
+  // 50 xe
   buildDDP(
     "DDP-NKV-001",
     "NKV LOGISTICS LTD (Công ty TNHH Dịch Vụ Tiếp Vận NKV)",
@@ -493,33 +494,37 @@ const ddps: DDP[] = [
     "processing",
     "27/4/2026",
     [
-      { modelKey: "NSC110", colorCode: "YR381", qty: 8 },
-      { modelKey: "NSC110", colorCode: "NHA76", qty: 6 },
-      { modelKey: "AFB110", colorCode: "PB421", qty: 6 },
-      { modelKey: "SH125", colorCode: "NHD03", qty: 5 },
+      { modelKey: "NSC110", colorCode: "YR381", qty: 14 },
+      { modelKey: "NSC110", colorCode: "NHA76", qty: 12 },
+      { modelKey: "AFB110", colorCode: "PB421", qty: 12 },
+      { modelKey: "SH125", colorCode: "NHD03", qty: 12 },
     ],
   ),
+  // 40 xe
   buildDDP("DDP-PA-002", "Phương Anh Logistics", "PHUONGANH", "waiting", "27/4/2026", [
-    { modelKey: "ACA125", colorCode: "NHB25", qty: 8 },
-    { modelKey: "AFS125", colorCode: "NHC35", qty: 6 },
-    { modelKey: "FSH125", colorCode: "NHB18", qty: 8 },
-    { modelKey: "NHX125", colorCode: "NHA76", qty: 6 },
+    { modelKey: "ACA125", colorCode: "NHB25", qty: 12 },
+    { modelKey: "AFS125", colorCode: "NHC35", qty: 10 },
+    { modelKey: "FSH125", colorCode: "NHB18", qty: 10 },
+    { modelKey: "NHX125", colorCode: "NHA76", qty: 8 },
   ]),
+  // 30 xe
   buildDDP("DDP-VTC-003", "Vetranco South", "VETRANCO_S", "waiting", "27/4/2026", [
-    { modelKey: "SH160", colorCode: "NHC60", qty: 6 },
-    { modelKey: "FS150", colorCode: "NHA76", qty: 6 },
-    { modelKey: "ACA160", colorCode: "NHD14", qty: 5 },
-    { modelKey: "AFP110", colorCode: "R368", qty: 5 },
+    { modelKey: "SH160", colorCode: "NHC60", qty: 10 },
+    { modelKey: "FS150", colorCode: "NHA76", qty: 8 },
+    { modelKey: "ACA160", colorCode: "NHD14", qty: 6 },
+    { modelKey: "AFP110", colorCode: "R368", qty: 6 },
   ]),
+  // 40 xe
   buildDDP("DDP-VJC-004", "Vijaco South", "VIJACO_S", "waiting", "27/4/2026", [
-    { modelKey: "NSC110", colorCode: "R368", qty: 8 },
-    { modelKey: "SH125", colorCode: "NHD01", qty: 5 },
-    { modelKey: "ACA125", colorCode: "R368", qty: 6 },
+    { modelKey: "NSC110", colorCode: "R368", qty: 16 },
+    { modelKey: "SH125", colorCode: "NHD01", qty: 12 },
+    { modelKey: "ACA125", colorCode: "R368", qty: 12 },
   ]),
+  // 50 xe
   buildDDP("DDP-DRG-005", "Dragon South", "DRAGON_S", "waiting", "27/4/2026", [
-    { modelKey: "FSH125", colorCode: "NHC60", qty: 6 },
-    { modelKey: "AFB110", colorCode: "NHA76", qty: 8 },
-    { modelKey: "AFS125", colorCode: "PB421", qty: 5 },
+    { modelKey: "FSH125", colorCode: "NHC60", qty: 16 },
+    { modelKey: "AFB110", colorCode: "NHA76", qty: 18 },
+    { modelKey: "AFS125", colorCode: "PB421", qty: 16 },
   ]),
 ];
 
