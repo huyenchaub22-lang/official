@@ -56,9 +56,12 @@ function WarehousePage() {
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Boxes className="h-5 w-5" />
-            </div>
+            <img
+              src={hondaLogo}
+              alt="Honda Digital Layout Warehouse"
+              className="h-12 w-12 object-contain"
+            />
+          </div>
             <div>
               <h1 className="text-lg font-bold leading-tight text-foreground">
                 Quản lý Layout Kho Xe Honda — LOG2
