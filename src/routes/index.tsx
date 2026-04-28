@@ -61,7 +61,6 @@ function WarehousePage() {
               alt="Honda Digital Layout Warehouse"
               className="h-12 w-12 object-contain"
             />
-          </div>
             <div>
               <h1 className="text-lg font-bold leading-tight text-foreground">
                 Quản lý Layout Kho Xe Honda — LOG2
