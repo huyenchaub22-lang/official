@@ -94,7 +94,7 @@ function LaneList({
   return (
     <div className="flex-1 overflow-auto p-4">
       <p className="mb-3 text-xs text-muted-foreground">
-        Mỗi làn gom xe cùng <span className="font-semibold text-foreground">model + màu</span> (có thể lệch 1–2 xe do dồn kho). Click vào làn để xem chi tiết xe.
+        Mỗi làn gom xe cùng <span className="font-semibold text-foreground">model + màu</span>. Click vào làn để xem chi tiết xe.
       </p>
       <div className="grid gap-3">
         {zone.lanes.map((lane) => {
