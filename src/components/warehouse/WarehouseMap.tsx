@@ -7,9 +7,10 @@ interface ZoneCardProps {
   vehiclesInZone: number;
   onClick: () => void;
   isActive: boolean;
+  highlightCount?: number; // number of search-matched vehicles in this zone
 }
 
-function ZoneCard({ zone, vehiclesInZone, onClick, isActive }: ZoneCardProps) {
+function ZoneCard({ zone, vehiclesInZone, onClick, isActive, highlightCount = 0 }: ZoneCardProps) {
   const isMaint = zone.status === "maintenance";
   const isFull = zone.status === "full";
   const ratio = getFillRatio(zone, vehiclesInZone);
@@ -28,6 +29,12 @@ function ZoneCard({ zone, vehiclesInZone, onClick, isActive }: ZoneCardProps) {
         isActive ? "border-white ring-2 ring-white/60" : "border-transparent"
       }`}
     >
+      {/* Red dot indicator for search results */}
+      {highlightCount > 0 && (
+        <div className="absolute -right-1.5 -top-1.5 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-lg animate-pulse">
+          {highlightCount}
+        </div>
+      )}
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0">
           <div className="flex items-center gap-1 text-sm font-bold text-white">
@@ -65,9 +72,10 @@ interface WarehouseMapProps {
   vehicles: Vehicle[];
   activeZoneId: string | null;
   onZoneClick: (zoneId: string) => void;
+  highlightedZones?: Map<string, number>; // zoneId -> count of matching vehicles
 }
 
-export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick }: WarehouseMapProps) {
+export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, highlightedZones }: WarehouseMapProps) {
   const countByZone = new Map<string, number>();
   vehicles.forEach((v) => {
     if (v.status === "in_zone" && v.zoneId) {
@@ -84,6 +92,7 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick }: War
       vehiclesInZone={cnt(id)}
       onClick={() => onZoneClick(id)}
       isActive={activeZoneId === id}
+      highlightCount={highlightedZones?.get(id) ?? 0}
     />
   );
 
