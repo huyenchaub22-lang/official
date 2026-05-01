@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Quản lý layout kho xe Honda: zone, làn, MTOC, DDP và xử lý lỗi ngoại quan.",
+          "Quản lý layout kho xe Honda: zone, làn, MTOC, đơn hàng và xử lý lỗi ngoại quan.",
       },
     ],
   }),
@@ -50,6 +50,27 @@ function WarehousePage() {
     [activeZone, state.vehicles],
   );
 
+  // Search highlighting: compute which zones have matching vehicles
+  const highlightedZones = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return undefined;
+    const map = new Map<string, number>();
+    state.vehicles.forEach((v) => {
+      if (v.status !== "in_zone" || !v.zoneId) return;
+      const match =
+        v.vin.toLowerCase().includes(q) ||
+        v.modelCode.toLowerCase().includes(q) ||
+        v.modelName.toLowerCase().includes(q) ||
+        v.colorCode.toLowerCase().includes(q) ||
+        v.colorName.toLowerCase().includes(q) ||
+        v.typeCode.toLowerCase().includes(q);
+      if (match) {
+        map.set(v.zoneId, (map.get(v.zoneId) ?? 0) + 1);
+      }
+    });
+    return map.size > 0 ? map : undefined;
+  }, [searchQuery, state.vehicles]);
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -73,7 +94,7 @@ function WarehousePage() {
           <div className="flex items-center gap-2">
             <HeaderStat value={`${inLayoutCount}/${totalCapacity}`} label="Xe trong layout" tone="text-emerald-600" />
             <HeaderStat value={String(freeSlots)} label="Chỗ trống" tone="text-blue-600" />
-            <HeaderStat value={String(processingDDPs)} label="DDP đang xử lý" tone="text-orange-600" />
+            <HeaderStat value={String(processingDDPs)} label="Đơn đang xử lý" tone="text-orange-600" />
           </div>
         </div>
       </header>
@@ -97,6 +118,7 @@ function WarehousePage() {
               vehicles={state.vehicles}
               activeZoneId={activeZoneId}
               onZoneClick={(id) => setActiveZoneId(id)}
+              highlightedZones={highlightedZones}
             />
 
             <SpecialAreasPanel areas={state.specialAreas} />
