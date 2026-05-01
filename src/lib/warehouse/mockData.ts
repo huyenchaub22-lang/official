@@ -202,7 +202,10 @@ function nextVin() {
 const vehicles: Vehicle[] = [];
 const zones: Zone[] = [];
 
-// Build zones, lanes, vehicles
+// ---------- All model keys for random picking ----------
+const ALL_MODEL_KEYS = Object.keys(MODELS);
+
+// Build zones, lanes, vehicles — MTOC lẫn lộn random, không gom theo zone
 for (const plan of ZONE_PLAN) {
   const zoneId = plan.id;
   const laneCount = plan.laneCount;
@@ -211,38 +214,22 @@ for (const plan of ZONE_PLAN) {
   const lanes: Lane[] = [];
   const effectiveFill = plan.status === "maintenance" ? 0 : plan.fillRatio;
 
-  // Phân chia màu cho các làn: mỗi làn 1 (model + màu) ổn định.
-  // Khi zone có 2 model → xen kẽ. Khi có nhiều màu hơn số làn → rải đa dạng.
   for (let i = 0; i < laneCount; i++) {
-    const modelKey = plan.models[i % plan.models.length];
-    const modelDef = MODELS[modelKey];
-    // Pick màu thực tế của model — luân phiên để đa dạng trên các làn
-    const colorIdx =
-      (Math.floor(i / plan.models.length) + zoneId.charCodeAt(zoneId.length - 1)) %
-      modelDef.colors.length;
-    const primaryColorCode = modelDef.colors[colorIdx];
-    const primaryColor = COLORS.find((c) => c.code === primaryColorCode)!;
-
     const targetLaneFill = Math.round(plan.laneCapacity * effectiveFill);
     const laneVins: string[] = [];
 
+    // Pick a random primary model for lane metadata only
+    const laneModelKey = ALL_MODEL_KEYS[Math.floor(rand() * ALL_MODEL_KEYS.length)];
+    const laneModelDef = MODELS[laneModelKey];
+    const lanePrimaryColorCode = laneModelDef.colors[Math.floor(rand() * laneModelDef.colors.length)];
+    const lanePrimaryColor = COLORS.find((c) => c.code === lanePrimaryColorCode)!;
+
     for (let v = 0; v < targetLaneFill; v++) {
-      // ~10% xe lệch (dồn kho từ làn/zone khác): khác màu hoặc khác model phụ
-      const drift = rand() < 0.1 && v >= plan.laneCapacity - 3;
-      let useColor = primaryColor;
-      let useModel = modelDef;
-      if (drift) {
-        if (plan.models.length > 1 && rand() < 0.5) {
-          useModel = MODELS[plan.models[(i + 1) % plan.models.length]];
-          useColor =
-            COLORS.find((c) => c.code === useModel.colors[0]) ?? primaryColor;
-        } else {
-          // Đổi sang màu khác cùng model (vẫn trong list màu thực tế)
-          const altColorCode =
-            modelDef.colors[(colorIdx + 1) % modelDef.colors.length];
-          useColor = COLORS.find((c) => c.code === altColorCode) ?? primaryColor;
-        }
-      }
+      // Mỗi xe pick random model + random màu từ toàn bộ catalog
+      const useModelKey = ALL_MODEL_KEYS[Math.floor(rand() * ALL_MODEL_KEYS.length)];
+      const useModel = MODELS[useModelKey];
+      const useColorCode = useModel.colors[Math.floor(rand() * useModel.colors.length)];
+      const useColor = COLORS.find((c) => c.code === useColorCode)!;
 
       const arrivedDate = new Date(
         2026,
@@ -256,10 +243,9 @@ for (const plan of ZONE_PLAN) {
 
       const history: HistoryEntry[] = [
         { ts: fmtTime(arrivedDate), from: "—", to: "RECV", note: "Xe nhập kho từ nhà máy Honda VN" },
-        { ts: fmtTime(placedDate), from: "RECV", to: `${zoneId}/L${i + 1}`, note: "Sắp xếp vào zone theo MTOC" },
+        { ts: fmtTime(placedDate), from: "RECV", to: `${zoneId}/L${i + 1}`, note: "Sắp xếp vào zone" },
       ];
 
-      // ~15% consolidation: từng ở zone khác → dồn về đây
       if (rand() < 0.15) {
         const otherIdx = ((parseInt(zoneId.slice(1)) % 13) + 1);
         const otherZone = `A${otherIdx}`;
@@ -274,11 +260,10 @@ for (const plan of ZONE_PLAN) {
           ts: fmtTime(movedDate),
           from: history[1].to,
           to: `${zoneId}/L${i + 1}`,
-          note: "Dồn kho — gom cùng MTOC để xuất hàng",
+          note: "Dồn kho — chuyển vị trí",
         });
       }
 
-      // ~12% từng đi qua NG → MAINT → QC → quay lại layout
       if (rand() < 0.12) {
         const last = history[history.length - 1].to;
         const ngDate = new Date(placedDate.getTime() + 24 * 3600 * 1000);
@@ -289,11 +274,10 @@ for (const plan of ZONE_PLAN) {
           { ts: fmtTime(ngDate), from: last, to: "Kho Check (NG)", note: "Phát hiện lỗi ngoại quan (xước/móp)" },
           { ts: fmtTime(fixDate), from: "Kho Check (NG)", to: "Nhà máy bảo dưỡng", note: "Chuyển nhà máy sửa chữa" },
           { ts: fmtTime(okDate), from: "Nhà máy bảo dưỡng", to: "QC", note: "Sửa OK — qua QC kiểm tra cuối" },
-          { ts: fmtTime(backDate), from: "QC", to: `${zoneId}/L${i + 1}`, note: "Đạt QC — trả lại layout đúng MTOC" },
+          { ts: fmtTime(backDate), from: "QC", to: `${zoneId}/L${i + 1}`, note: "Đạt QC — trả lại layout" },
         );
       }
 
-      // ~5% từng dồn từ A8 (đang bảo trì) sang đây
       if (rand() < 0.05 && zoneId !== "A8") {
         const moveDate = new Date(placedDate.getTime() + 36 * 3600 * 1000);
         history.push({
@@ -327,18 +311,23 @@ for (const plan of ZONE_PLAN) {
       id: `${zoneId}-L${i + 1}`,
       label: `L${i + 1}`,
       capacity: plan.laneCapacity,
-      primaryModelCode: modelDef.code,
-      primaryColorCode: primaryColor.code,
+      primaryModelCode: laneModelDef.code,
+      primaryColorCode: lanePrimaryColor.code,
       vehicleVins: laneVins,
     });
   }
+
+  // Collect unique model names present in this zone's vehicles
+  const zoneModelNames = Array.from(new Set(
+    vehicles.filter(vv => vv.zoneId === zoneId).map(vv => vv.modelName)
+  ));
 
   zones.push({
     id: zoneId,
     label: zoneId,
     capacity,
     lanes,
-    modelNames: plan.models.map((k) => MODELS[k].name),
+    modelNames: zoneModelNames.length > 0 ? zoneModelNames : plan.models.map((k) => MODELS[k].name),
     status: plan.status,
     maintenanceReason: plan.maintenanceReason,
     maintenanceStart: plan.maintenanceStart,
