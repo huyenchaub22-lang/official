@@ -139,7 +139,7 @@ export function Sidebar({
       </section>
 
       <section className="rounded-2xl border bg-card p-4 shadow-sm">
-        <h3 className="mb-2 text-sm font-semibold text-foreground">Upload DDP plan</h3>
+        <h3 className="mb-2 text-sm font-semibold text-foreground">Upload đơn hàng</h3>
         <input
           ref={fileRef}
           type="file"
@@ -157,7 +157,7 @@ export function Sidebar({
           className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-border bg-background py-3 text-sm font-medium text-foreground hover:bg-muted"
         >
           <Upload className="h-4 w-4" />
-          Click để upload file DDP
+          Click để upload file đơn hàng
         </button>
         {uploadMsg && (
           <div className="mt-2 rounded-md bg-muted p-2 text-[11px]">{uploadMsg}</div>
@@ -174,7 +174,7 @@ export function Sidebar({
 
       <section className="rounded-2xl border bg-card p-4 shadow-sm">
         <h3 className="mb-2 text-sm font-semibold text-foreground">
-          Danh sách DDP ({ddps.length})
+          Danh sách đơn hàng ({ddps.length})
         </h3>
         <div className="space-y-2">
           {ddps.map((d) => {
