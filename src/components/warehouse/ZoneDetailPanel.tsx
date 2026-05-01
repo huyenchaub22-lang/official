@@ -114,27 +114,33 @@ function LaneList({
                   <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white ${fillColorBgSoft[tier].split(" ")[0]}`}>
                     {lane.label}
                   </div>
-                  <div>
+                    <div>
                     <div className="text-sm font-semibold text-foreground">
                       Làn {lane.label} ·{" "}
                       <span className="text-muted-foreground">
                         {vs.length}/{lane.capacity} xe
                       </span>
                     </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>Tính chất:</span>
-                      <span className="font-medium text-foreground">
-                        {vs[0]?.modelName ?? "—"}
-                      </span>
-                      {colorObj && (
-                        <>
-                          <span
-                            className="inline-block h-3 w-3 rounded-full border"
-                            style={{ backgroundColor: colorObj.hex }}
-                          />
-                          <span>{colorObj.name}</span>
-                        </>
-                      )}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                      {(() => {
+                        const models = Array.from(new Set(vs.map(v => v.modelName)));
+                        const colorCodes = Array.from(new Set(vs.map(v => v.colorCode)));
+                        const colorObjs = colorCodes.map(code => COLORS.find(c => c.code === code)).filter(Boolean);
+                        return (
+                          <>
+                            <span>{models.length} model · {colorCodes.length} màu</span>
+                            {colorObjs.slice(0, 5).map(c => c && (
+                              <span
+                                key={c.code}
+                                className="inline-block h-3 w-3 rounded-full border"
+                                style={{ backgroundColor: c.hex }}
+                                title={c.name}
+                              />
+                            ))}
+                            {colorObjs.length > 5 && <span>+{colorObjs.length - 5}</span>}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
