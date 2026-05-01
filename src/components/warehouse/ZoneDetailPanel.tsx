@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { ArrowLeft, History, Layers, Wrench, X } from "lucide-react";
-import type { Vehicle, Zone } from "@/lib/warehouse/types";
+import { useEffect, useState } from "react";
+import { ArrowLeft, History, Layers, Wrench, X, Check, Box } from "lucide-react";
+import type { Vehicle, Zone, PickContext } from "@/lib/warehouse/types";
 import { fillColorBgSoft, getFillRatio, getFillTier } from "@/lib/warehouse/fillColors";
 import { COLORS } from "@/lib/warehouse/mockData";
 
@@ -9,10 +9,30 @@ interface Props {
   vehiclesInZone: Vehicle[];
   onClose: () => void;
   onShowHistory: (vin: string) => void;
+  initialLaneId?: string | null;
+  onLaneOpened?: () => void;
+  activePickLine?: PickContext | null;
+  onToggleVin?: (ddpId: string, lineId: string, vin: string) => void;
 }
 
-export function ZoneDetailPanel({ zone, vehiclesInZone, onClose, onShowHistory }: Props) {
+export function ZoneDetailPanel({
+  zone,
+  vehiclesInZone,
+  onClose,
+  onShowHistory,
+  initialLaneId,
+  onLaneOpened,
+  activePickLine,
+  onToggleVin,
+}: Props) {
   const [selectedLaneId, setSelectedLaneId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialLaneId && zone) {
+      setSelectedLaneId(initialLaneId);
+      onLaneOpened?.();
+    }
+  }, [initialLaneId, zone, onLaneOpened]);
 
   if (!zone) return null;
 
@@ -69,12 +89,15 @@ export function ZoneDetailPanel({ zone, vehiclesInZone, onClose, onShowHistory }
             zone={zone}
             laneVehicles={laneVehicles}
             onSelectLane={setSelectedLaneId}
+            activePickLine={activePickLine}
           />
         ) : (
           <VehicleListInLane
             lane={selectedLane}
             vehicles={laneVehicles(selectedLane.id)}
             onShowHistory={onShowHistory}
+            activePickLine={activePickLine}
+            onToggleVin={onToggleVin}
           />
         )}
       </aside>
@@ -86,10 +109,12 @@ function LaneList({
   zone,
   laneVehicles,
   onSelectLane,
+  activePickLine,
 }: {
   zone: Zone;
   laneVehicles: (laneId: string) => Vehicle[];
   onSelectLane: (laneId: string) => void;
+  activePickLine?: PickContext | null;
 }) {
   return (
     <div className="flex-1 overflow-auto p-4">
@@ -101,20 +126,33 @@ function LaneList({
           const vs = laneVehicles(lane.id);
           const ratio = vs.length / lane.capacity;
           const tier = getFillTier(ratio);
-          const colorObj = COLORS.find((c) => c.code === lane.primaryColorCode);
+
+          const hasMatches =
+            activePickLine &&
+            vs.some((v) => {
+              const matchModel = !activePickLine.modelCode || v.modelCode.toLowerCase().includes(activePickLine.modelCode.toLowerCase());
+              const matchType = !activePickLine.typeCode || v.typeCode.toLowerCase().includes(activePickLine.typeCode.toLowerCase());
+              const matchOption = !activePickLine.optionCode || (v.optionCode && v.optionCode.toLowerCase().includes(activePickLine.optionCode.toLowerCase()));
+              const matchColor = !activePickLine.colorCode || v.colorCode.toLowerCase().includes(activePickLine.colorCode.toLowerCase());
+              const matchVin = !activePickLine.vin || v.vin.toLowerCase().includes(activePickLine.vin.toLowerCase());
+              return matchModel && matchType && matchOption && matchColor && matchVin;
+            });
+
           return (
             <button
               key={lane.id}
               type="button"
               onClick={() => onSelectLane(lane.id)}
-              className="group rounded-xl border bg-background p-3 text-left transition-all hover:border-primary hover:shadow-md"
+              className={`group rounded-xl border bg-background p-3 text-left transition-all hover:shadow-md ${
+                hasMatches ? "border-violet-500 ring-1 ring-violet-500 bg-violet-50/30" : "hover:border-primary"
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white ${fillColorBgSoft[tier].split(" ")[0]}`}>
                     {lane.label}
                   </div>
-                    <div>
+                  <div>
                     <div className="text-sm font-semibold text-foreground">
                       Làn {lane.label} ·{" "}
                       <span className="text-muted-foreground">
@@ -145,7 +183,11 @@ function LaneList({
                   </div>
                 </div>
                 <div className="text-right text-xs">
-                  <span className="text-muted-foreground">{vs.length} xe</span>
+                  {hasMatches ? (
+                    <span className="rounded bg-violet-100 px-2 py-1 font-semibold text-violet-700">Có xe khớp</span>
+                  ) : (
+                    <span className="text-muted-foreground">{vs.length} xe</span>
+                  )}
                 </div>
               </div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -166,10 +208,14 @@ function VehicleListInLane({
   lane,
   vehicles,
   onShowHistory,
+  activePickLine,
+  onToggleVin,
 }: {
   lane: { id: string; label: string; primaryModelCode: string; primaryColorCode: string; capacity: number };
   vehicles: Vehicle[];
   onShowHistory: (vin: string) => void;
+  activePickLine?: PickContext | null;
+  onToggleVin?: (ddpId: string, lineId: string, vin: string) => void;
 }) {
   return (
     <div className="flex-1 overflow-auto p-4">
@@ -177,11 +223,26 @@ function VehicleListInLane({
         {vehicles.length} xe trong làn {lane.label}
       </p>
       <div className="space-y-2">
-        {vehicles.map((v) => {
+        {vehicles.map((v, index) => {
+          const isMatch = (() => {
+            if (!activePickLine) return false;
+            const matchModel = !activePickLine.modelCode || v.modelCode.toLowerCase().includes(activePickLine.modelCode.toLowerCase());
+            const matchType = !activePickLine.typeCode || v.typeCode.toLowerCase().includes(activePickLine.typeCode.toLowerCase());
+            const matchOption = !activePickLine.optionCode || (v.optionCode && v.optionCode.toLowerCase().includes(activePickLine.optionCode.toLowerCase()));
+            const matchColor = !activePickLine.colorCode || v.colorCode.toLowerCase().includes(activePickLine.colorCode.toLowerCase());
+            const matchVin = !activePickLine.vin || v.vin.toLowerCase().includes(activePickLine.vin.toLowerCase());
+            return matchModel && matchType && matchOption && matchColor && matchVin;
+          })();
+          
+          // Index cao (cuối mảng) = xe mới vào = dễ dắt ra nhất
+          const obstacleCount = vehicles.length - 1 - index;
+
           return (
             <div
               key={v.vin}
-              className="rounded-lg border bg-background p-3"
+              className={`rounded-lg border bg-background p-3 transition-colors ${
+                isMatch ? "border-violet-500 bg-violet-50/50 shadow-sm ring-1 ring-violet-500/20" : ""
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -204,18 +265,41 @@ function VehicleListInLane({
                   <div className="mt-1 text-xs text-muted-foreground">
                     VIN: <span className="font-mono text-foreground">{v.vin}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Model: {v.modelCode} {v.typeCode} · Màu: {v.colorCode} · Nhập: {v.arrivedAt}
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    Mã: {v.modelCode} {v.typeCode} · Màu: {v.colorCode} · Nhập: {v.arrivedAt}
                   </div>
+
+                  {isMatch && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className={`rounded flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold ${
+                        obstacleCount === 0 ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-700"
+                      }`}>
+                        <Box className="h-3 w-3" />
+                        {obstacleCount === 0 ? "Không có vật cản" : `Bị cản bởi ${obstacleCount} xe`}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onShowHistory(v.vin)}
-                  className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs text-foreground hover:bg-muted"
-                >
-                  <History className="h-3 w-3" />
-                  Lịch sử ({v.history.length})
-                </button>
+                <div className="flex flex-col items-end gap-2">
+                  {isMatch && onToggleVin && activePickLine && !activePickLine.isGlobalSearch && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleVin(activePickLine.ddpId!, activePickLine.lineId!, v.vin)}
+                      className="flex items-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-700"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      Pick xe này
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onShowHistory(v.vin)}
+                    className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs text-foreground hover:bg-muted"
+                  >
+                    <History className="h-3 w-3" />
+                    Lịch sử
+                  </button>
+                </div>
               </div>
             </div>
           );

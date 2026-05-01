@@ -37,7 +37,7 @@ export const COLORS: Array<{ code: string; name: string; hex: string }> = [
 // ---------- Models thật từ CSV Honda ----------
 // Format đúng: MODEL_CODE + TYPE_CODE (vd: NSC110 K2CN), OPTION_CODE (vd: V02, có thể trống),
 // COLOR_CODE (vd: R368). "option: """ nghĩa là option trống/full.
-const MODELS: Record<
+export const MODELS: Record<
   string,
   {
     code: string;
@@ -47,89 +47,89 @@ const MODELS: Record<
     colors: string[]; // các COLOR_CODE thực tế
   }
 > = {
-  NSC110: {
-    code: "NSC110",
+  NSC110_V02: {
+    code: "NSC110 K2CN",
     name: "Vision",
-    type: "K2CN",
-    option: "V02",
+    type: "V02",
+    option: "",
     colors: ["YR381", "R368", "NHA76", "NHB18", "NHC60", "NHD01"],
   },
-  ACA125: {
-    code: "ACA125",
+  NSC110_V06: {
+    code: "NSC110 K2CN",
+    name: "Vision",
+    type: "V06",
+    option: "",
+    colors: ["YR381", "R368", "NHA76", "NHB18", "NHC60", "NHD01"],
+  },
+  ACA125_V01: {
+    code: "ACA125 K3AG",
     name: "Air Blade 125",
-    type: "K3AG",
+    type: "V01",
     option: "",
     colors: ["NHB25", "R368", "NHA76", "NHC60", "NHD14", "PB434"],
   },
-  AFS125: {
-    code: "AFS125",
+  AFS125_V01: {
+    code: "AFS125 K73Y",
     name: "Air Blade 125 Sport",
-    type: "K73Y",
-    option: "V01",
+    type: "V01",
+    option: "",
     colors: ["NHC35", "NHC26", "PB421", "R350", "NHB55", "NHC34"],
   },
-  FSH125: {
-    code: "FSH125",
+  FSH125_V01: {
+    code: "FSH125 K1NG",
     name: "Future 125",
-    type: "K1NG",
+    type: "V01",
     option: "",
     colors: ["NHB18", "NHC60", "NHB35", "R368", "NHA76", "PB421"],
   },
-  AFB110: {
-    code: "AFB110",
+  AFB110_V41: {
+    code: "AFB110 K89Y",
     name: "Wave Alpha",
-    type: "K89R",
-    option: "V30",
-    colors: ["NHA76", "PB421", "R389", "NHB55"],
-  },
-  SH125: {
-    code: "SH125",
-    name: "SH 125",
-    type: "K0RP",
-    option: "V05",
-    colors: ["NHD03", "NHD01", "NHC60", "NHD14", "NHB25"],
-  },
-  NHX125: {
-    code: "NHX125",
-    name: "Lead 125",
-    type: "K2TJ",
-    option: "V02",
-    colors: ["NHA76", "NHC34", "NHD14", "NHB18"],
-  },
-  SH160: {
-    code: "SH160",
-    name: "SH 160",
-    type: "K0SP",
+    type: "V41",
     option: "",
-    colors: ["NHC60", "NHD03", "NHD14", "NHD01", "GY163", "R368"],
+    colors: ["NHA76", "PB421", "R389", "NHB55", "NHC26"],
   },
-  ACA160: {
-    code: "ACA160",
-    name: "Air Blade 160",
-    type: "K2ZG",
-    option: "V01",
-    colors: ["NHD14", "R368", "NHA76"],
-  },
-  AFP110: {
-    code: "AFP110",
+  AFP110_V01: {
+    code: "AFP110 K90P",
     name: "Wave RSX",
-    type: "K90P",
+    type: "V01",
     option: "",
     colors: ["R368", "NHC60", "NHB25", "PB421"],
   },
-  FS150: {
-    code: "FS150",
-    name: "Winner X",
-    type: "K2PN",
-    option: "V15",
-    colors: ["NHA76", "NHB25", "NHC60", "GY163", "R389"],
+  SH125_V05: {
+    code: "SH125 K0RP",
+    name: "SH 125",
+    type: "V05",
+    option: "",
+    colors: ["NHD03", "NHD01", "NHC60", "NHD14", "NHB25"],
   },
-  ACB125: {
-    code: "ACB125",
-    name: "Air Blade 125 ABS",
-    type: "K2VG",
-    option: "V03",
-    colors: ["NH436", "PB406"],
+  NHX125_V02: {
+    code: "NHX125 K2TJ",
+    name: "Lead 125",
+    type: "V02",
+    option: "",
+    colors: ["NHA76", "NHC34", "NHD14", "NHB18"],
+  },
+  SH160_V01: {
+    code: "SH160 K0SP",
+    name: "SH 160",
+    type: "V01",
+    option: "",
+    colors: ["NHC60", "NHD03", "NHD14", "NHD01", "GY163", "R368"],
+  },
+  ACA160_V01: {
+    code: "ACA160 K2ZG",
+    name: "Air Blade 160",
+    type: "V01",
+    option: "",
+    colors: ["NHD14", "R368", "NHA76"],
+  },
+  FS150_V15: {
+    code: "FS150 K2PN",
+    name: "Winner X",
+    type: "V15",
+    option: "",
+    colors: ["NHA76", "NHC60"],
   },
 };
 
@@ -151,26 +151,26 @@ const ZONE_PLAN: Array<{
   maintenanceEnd?: string;
 }> = [
   // Hàng dưới — A1 nhỏ, A2 dài & rộng nhất, A3 ngắn
-  { id: "A1", laneCount: 4, laneCapacity: 12, models: ["NSC110"], fillRatio: 0.78, status: "normal" }, // 48
-  { id: "A2", laneCount: 5, laneCapacity: 20, models: ["NSC110", "AFB110"], fillRatio: 0.72, status: "normal" }, // 100
-  { id: "A3", laneCount: 4, laneCapacity: 14, models: ["AFP110"], fillRatio: 0.55, status: "normal" }, // 56
+  { id: "A1", laneCount: 4, laneCapacity: 12, models: ["NSC110_V02"], fillRatio: 0.78, status: "normal" }, // 48
+  { id: "A2", laneCount: 5, laneCapacity: 20, models: ["NSC110_V06", "AFB110_V41"], fillRatio: 0.72, status: "normal" }, // 100
+  { id: "A3", laneCount: 4, laneCapacity: 14, models: ["AFP110_V01"], fillRatio: 0.55, status: "normal" }, // 56
   // Hàng giữa dưới — A4 nhỏ, A5 lớn nhất (full), A6 vuông
-  { id: "A4", laneCount: 4, laneCapacity: 12, models: ["FSH125"], fillRatio: 0.85, status: "normal" }, // 48
-  { id: "A5", laneCount: 5, laneCapacity: 20, models: ["ACA125", "AFS125"], fillRatio: 1.0, status: "full" }, // 100
-  { id: "A6", laneCount: 4, laneCapacity: 14, models: ["NHX125"], fillRatio: 0.6, status: "normal" }, // 56
+  { id: "A4", laneCount: 4, laneCapacity: 12, models: ["FSH125_V01"], fillRatio: 0.85, status: "normal" }, // 48
+  { id: "A5", laneCount: 5, laneCapacity: 20, models: ["ACA125_V01", "AFS125_V01"], fillRatio: 1.0, status: "full" }, // 100
+  { id: "A6", laneCount: 4, laneCapacity: 14, models: ["NHX125_V02"], fillRatio: 0.6, status: "normal" }, // 56
   // Hàng giữa trên — A7 dài, A8 bảo trì, A9 nhỏ
-  { id: "A7", laneCount: 4, laneCapacity: 18, models: ["SH125", "SH160"], fillRatio: 0.66, status: "normal" }, // 72
-  { id: "A8", laneCount: 5, laneCapacity: 16, models: ["ACA160", "ACB125"], fillRatio: 0, status: "maintenance",
+  { id: "A7", laneCount: 4, laneCapacity: 18, models: ["SH125_V05", "SH160_V01"], fillRatio: 0.66, status: "normal" }, // 72
+  { id: "A8", laneCount: 5, laneCapacity: 16, models: ["ACA160_V01"], fillRatio: 0, status: "maintenance",
     maintenanceReason: "Sửa nền & sơn lại vạch chia làn",
     maintenanceStart: "24/4/2026",
     maintenanceEnd: "29/4/2026",
   }, // 80
-  { id: "A9", laneCount: 3, laneCapacity: 12, models: ["NHX125"], fillRatio: 0.7, status: "normal" }, // 36
+  { id: "A9", laneCount: 3, laneCapacity: 12, models: ["NHX125_V02"], fillRatio: 0.7, status: "normal" }, // 36
   // Hàng trên — A10 ngang, A11 ngang, A12 ngang vuông nhiều làn ngắn, A13 dọc dài
-  { id: "A10", laneCount: 4, laneCapacity: 16, models: ["FS150", "AFS125"], fillRatio: 0.55, status: "normal" }, // 64
-  { id: "A11", laneCount: 4, laneCapacity: 14, models: ["AFB110"], fillRatio: 0.74, status: "normal" }, // 56
-  { id: "A12", laneCount: 6, laneCapacity: 12, models: ["NSC110"], fillRatio: 0.69, status: "normal" }, // 72 — nhiều làn, làn ngắn
-  { id: "A13", laneCount: 5, laneCapacity: 18, models: ["SH125", "ACA125"], fillRatio: 0.62, status: "normal" }, // 90 — ít làn, làn dài
+  { id: "A10", laneCount: 4, laneCapacity: 16, models: ["FS150_V15", "AFS125_V01"], fillRatio: 0.55, status: "normal" }, // 64
+  { id: "A11", laneCount: 4, laneCapacity: 14, models: ["AFB110_V41"], fillRatio: 0.74, status: "normal" }, // 56
+  { id: "A12", laneCount: 6, laneCapacity: 12, models: ["NSC110_V06"], fillRatio: 0.69, status: "normal" }, // 72 — nhiều làn, làn ngắn
+  { id: "A13", laneCount: 5, laneCapacity: 18, models: ["SH125_V05", "ACA125_V01"], fillRatio: 0.62, status: "normal" }, // 90 — ít làn, làn dài
 ];
 
 // ---------- pseudo-random deterministic ----------
@@ -182,10 +182,10 @@ function mulberry32(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const rand = mulberry32(20260427);
-const pick = <T,>(arr: T[]): T => arr[Math.floor(rand() * arr.length)];
+export const rand = mulberry32(20260427);
+export const pick = <T,>(arr: T[]): T => arr[Math.floor(rand() * arr.length)];
 
-function fmtTime(d: Date) {
+export function fmtTime(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
 }
@@ -194,7 +194,7 @@ function fmtDate(d: Date) {
 }
 
 let vinCounter = 50000;
-function nextVin() {
+export function nextVin() {
   vinCounter += 1;
   return `RLHPC00${vinCounter}`;
 }
@@ -334,6 +334,128 @@ for (const plan of ZONE_PLAN) {
     maintenanceEnd: plan.maintenanceEnd,
   });
 }
+
+// ---------- Ensure enough inventory for DDP orders ----------
+// Count current vehicles in layout per modelCode+colorCode, compare with DDP requirements,
+// and add extra vehicles if the inventory is short. This keeps mock data realistic.
+const DDP_REQUIREMENTS: Array<{ modelKey: string; colorCode: string; qty: number }> = [
+  // DDP-NKV-001
+  { modelKey: "NSC110_V02", colorCode: "YR381", qty: 14 },
+  { modelKey: "NSC110_V06", colorCode: "NHA76", qty: 12 },
+  { modelKey: "AFB110_V41", colorCode: "PB421", qty: 12 },
+  { modelKey: "SH125_V05", colorCode: "NHD03", qty: 12 },
+  // DDP-PA-002
+  { modelKey: "ACA125_V01", colorCode: "NHB25", qty: 12 },
+  { modelKey: "AFS125_V01", colorCode: "NHC35", qty: 10 },
+  { modelKey: "FSH125_V01", colorCode: "NHB18", qty: 10 },
+  { modelKey: "NHX125_V02", colorCode: "NHA76", qty: 8 },
+  // DDP-VTC-003
+  { modelKey: "SH160_V01", colorCode: "NHC60", qty: 8 },
+  { modelKey: "FS150_V15", colorCode: "NHA76", qty: 8 },
+  { modelKey: "ACA160_V01", colorCode: "NHD14", qty: 6 },
+  { modelKey: "AFP110_V01", colorCode: "R368", qty: 6 },
+  // DDP-VJC-004
+  { modelKey: "NSC110_V06", colorCode: "R368", qty: 16 },
+  { modelKey: "SH125_V05", colorCode: "NHD01", qty: 12 },
+  { modelKey: "ACA125_V01", colorCode: "R368", qty: 12 },
+  // DDP-DRG-005
+  { modelKey: "FSH125_V01", colorCode: "NHC60", qty: 16 },
+  { modelKey: "AFB110_V41", colorCode: "NHA76", qty: 18 },
+  { modelKey: "AFS125_V01", colorCode: "PB421", qty: 16 },
+];
+
+// Aggregate total needed per modelCode+colorCode across all DDPs
+const neededMap = new Map<string, number>();
+DDP_REQUIREMENTS.forEach((r) => {
+  const key = `${MODELS[r.modelKey].code}|${r.colorCode}`;
+  neededMap.set(key, (neededMap.get(key) ?? 0) + r.qty);
+});
+
+// Count existing in-zone vehicles
+const existingCount = new Map<string, number>();
+vehicles.forEach((v) => {
+  if (v.status === "in_zone") {
+    const key = `${v.modelCode}|${v.colorCode}`;
+    existingCount.set(key, (existingCount.get(key) ?? 0) + 1);
+  }
+});
+
+// Add extra vehicles where inventory is short (with a small buffer of +2)
+const activeZoneIds = ZONE_PLAN.filter((p) => p.status !== "maintenance").map((p) => p.id);
+neededMap.forEach((needed, key) => {
+  const existing = existingCount.get(key) ?? 0;
+  const shortage = needed + 2 - existing; // +2 buffer so there's a little extra
+  if (shortage <= 0) return;
+
+  const [modelCode, colorCode] = key.split("|");
+  const modelEntry = Object.values(MODELS).find((m) => m.code === modelCode);
+  if (!modelEntry) return;
+  const colorEntry = COLORS.find((c) => c.code === colorCode);
+  if (!colorEntry) return;
+
+  for (let i = 0; i < shortage; i++) {
+    // Distribute among active zones round-robin
+    const targetZoneId = activeZoneIds[i % activeZoneIds.length];
+    const targetZone = zones.find((z) => z.id === targetZoneId);
+    if (!targetZone) continue;
+
+    // Pick a lane in this zone (round-robin)
+    const laneIdx = i % targetZone.lanes.length;
+    const lane = targetZone.lanes[laneIdx];
+
+    const arrivedDate = new Date(
+      2026,
+      2 + Math.floor(rand() * 2),
+      1 + Math.floor(rand() * 28),
+      7 + Math.floor(rand() * 11),
+    );
+    const placedDate = new Date(
+      arrivedDate.getTime() + (1 + Math.floor(rand() * 4)) * 24 * 3600 * 1000,
+    );
+
+    const history: HistoryEntry[] = [
+      { ts: fmtTime(arrivedDate), from: "—", to: "RECV", note: "Xe nhập kho từ nhà máy Honda VN" },
+      { ts: fmtTime(placedDate), from: "RECV", to: `${targetZoneId}/${lane.label}`, note: "Sắp xếp vào zone" },
+    ];
+
+    const vin = nextVin();
+    vehicles.push({
+      vin,
+      modelName: modelEntry.name,
+      modelCode: modelEntry.code,
+      typeCode: modelEntry.type,
+      optionCode: modelEntry.option,
+      colorCode: colorEntry.code,
+      colorName: colorEntry.name,
+      colorHex: colorEntry.hex,
+      arrivedAt: fmtTime(arrivedDate),
+      status: "in_zone",
+      zoneId: targetZoneId,
+      laneId: lane.id,
+      history,
+    });
+    lane.vehicleVins.push(vin);
+    if (lane.vehicleVins.length > lane.capacity) {
+      lane.capacity = lane.vehicleVins.length;
+    }
+  }
+});
+
+// Update zone capacities to match expanded lane capacities
+zones.forEach((z) => {
+  const totalLanesCap = z.lanes.reduce((sum, l) => sum + l.capacity, 0);
+  if (totalLanesCap > z.capacity) {
+    z.capacity = totalLanesCap;
+  }
+});
+
+// Re-compute modelNames for zones after adding extra vehicles
+zones.forEach((z) => {
+  const zoneModelNames = Array.from(new Set(
+    vehicles.filter((vv) => vv.zoneId === z.id).map((vv) => vv.modelName),
+  ));
+  if (zoneModelNames.length > 0) z.modelNames = zoneModelNames;
+});
 
 // ---------- Special areas ----------
 function makeSpecialVehicle(status: Vehicle["status"]): Vehicle {
@@ -487,37 +609,37 @@ const ddps: DDP[] = [
     "processing",
     "27/4/2026",
     [
-      { modelKey: "NSC110", colorCode: "YR381", qty: 14 },
-      { modelKey: "NSC110", colorCode: "NHA76", qty: 12 },
-      { modelKey: "AFB110", colorCode: "PB421", qty: 12 },
-      { modelKey: "SH125", colorCode: "NHD03", qty: 12 },
+      { modelKey: "NSC110_V02", colorCode: "YR381", qty: 14 },
+      { modelKey: "NSC110_V06", colorCode: "NHA76", qty: 12 },
+      { modelKey: "AFB110_V41", colorCode: "PB421", qty: 12 },
+      { modelKey: "SH125_V05", colorCode: "NHD03", qty: 12 },
     ],
   ),
   // 40 xe
   buildDDP("DDP-PA-002", "Phương Anh Logistics", "PHUONGANH", "waiting", "27/4/2026", [
-    { modelKey: "ACA125", colorCode: "NHB25", qty: 12 },
-    { modelKey: "AFS125", colorCode: "NHC35", qty: 10 },
-    { modelKey: "FSH125", colorCode: "NHB18", qty: 10 },
-    { modelKey: "NHX125", colorCode: "NHA76", qty: 8 },
+    { modelKey: "ACA125_V01", colorCode: "NHB25", qty: 12 },
+    { modelKey: "AFS125_V01", colorCode: "NHC35", qty: 10 },
+    { modelKey: "FSH125_V01", colorCode: "NHB18", qty: 10 },
+    { modelKey: "NHX125_V02", colorCode: "NHA76", qty: 8 },
   ]),
   // 28 xe
   buildDDP("DDP-VTC-003", "Vetranco South", "VETRANCO_S", "waiting", "27/4/2026", [
-    { modelKey: "SH160", colorCode: "NHC60", qty: 8 },
-    { modelKey: "FS150", colorCode: "NHA76", qty: 8 },
-    { modelKey: "ACA160", colorCode: "NHD14", qty: 6 },
-    { modelKey: "AFP110", colorCode: "R368", qty: 6 },
+    { modelKey: "SH160_V01", colorCode: "NHC60", qty: 8 },
+    { modelKey: "FS150_V15", colorCode: "NHA76", qty: 8 },
+    { modelKey: "ACA160_V01", colorCode: "NHD14", qty: 6 },
+    { modelKey: "AFP110_V01", colorCode: "R368", qty: 6 },
   ]),
   // 40 xe
   buildDDP("DDP-VJC-004", "Vijaco South", "VIJACO_S", "waiting", "27/4/2026", [
-    { modelKey: "NSC110", colorCode: "R368", qty: 16 },
-    { modelKey: "SH125", colorCode: "NHD01", qty: 12 },
-    { modelKey: "ACA125", colorCode: "R368", qty: 12 },
+    { modelKey: "NSC110_V06", colorCode: "R368", qty: 16 },
+    { modelKey: "SH125_V05", colorCode: "NHD01", qty: 12 },
+    { modelKey: "ACA125_V01", colorCode: "R368", qty: 12 },
   ]),
   // 50 xe
   buildDDP("DDP-DRG-005", "Dragon South", "DRAGON_S", "waiting", "27/4/2026", [
-    { modelKey: "FSH125", colorCode: "NHC60", qty: 16 },
-    { modelKey: "AFB110", colorCode: "NHA76", qty: 18 },
-    { modelKey: "AFS125", colorCode: "PB421", qty: 16 },
+    { modelKey: "FSH125_V01", colorCode: "NHC60", qty: 16 },
+    { modelKey: "AFB110_V41", colorCode: "NHA76", qty: 18 },
+    { modelKey: "AFS125_V01", colorCode: "PB421", qty: 16 },
   ]),
 ];
 

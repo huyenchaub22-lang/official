@@ -89,3 +89,17 @@ export interface SpecialArea {
   count: number;
   capacity: number;
 }
+
+export interface PickContext {
+  ddpId?: string;
+  lineId?: string;
+  modelCode?: string;
+  typeCode?: string;
+  optionCode?: string;
+  colorCode?: string;
+  modelName?: string;
+  colorName?: string;
+  vin?: string;
+  qty?: number; // total needed
+  isGlobalSearch?: boolean;
+}

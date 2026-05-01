@@ -1,18 +1,16 @@
 import { useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, History, MapPin, Package, Search, Upload, X } from "lucide-react";
+import { FileSpreadsheet, Upload } from "lucide-react";
+import * as XLSX from "xlsx";
 import type { DDP, Vehicle } from "@/lib/warehouse/types";
-import { lookupColor, findZoneForVehicleType } from "@/lib/warehouse/mockData";
+import { lookupColor, findZoneForVehicleType, COLORS } from "@/lib/warehouse/mockData";
 
 interface SidebarProps {
   ddps: DDP[];
   vehicles: Vehicle[];
   onOpenDDP: (id: string) => void;
   activeDDPId: string | null;
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
-  onSelectVin: (vin: string) => void;
   onUploadDDP: (ddp: DDP) => void;
-  onNavigateToZoneLane?: (zoneId: string, laneId: string) => void;
+  onStartGlobalSearch?: (ctx: { modelCode?: string; typeCode?: string; optionCode?: string; colorCode?: string; vin?: string; modelName?: string; colorName?: string; }) => void;
 }
 
 const STATUS_LABEL: Record<DDP["status"], string> = {
@@ -32,57 +30,62 @@ export function Sidebar({
   vehicles,
   onOpenDDP,
   activeDDPId,
-  searchQuery,
-  setSearchQuery,
-  onSelectVin,
   onUploadDDP,
-  onNavigateToZoneLane,
+  onStartGlobalSearch,
 }: SidebarProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
-  const [assignVin, setAssignVin] = useState<string | null>(null);
 
-  const searchResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [] as Vehicle[];
-    return vehicles
-      .filter(
-        (v) =>
-          v.vin.toLowerCase().includes(q) ||
-          v.modelCode.toLowerCase().includes(q) ||
-          v.modelName.toLowerCase().includes(q) ||
-          v.colorCode.toLowerCase().includes(q) ||
-          v.colorName.toLowerCase().includes(q) ||
-          v.typeCode.toLowerCase().includes(q),
-      )
-      .slice(0, 30);
-  }, [searchQuery, vehicles]);
+  // Search Form State
+  const [searchModel, setSearchModel] = useState("");
+  const [searchType, setSearchType] = useState("");
+  const [searchOption, setSearchOption] = useState("");
+  const [searchColor, setSearchColor] = useState("");
+  const [searchVin, setSearchVin] = useState("");
 
-  // Find matching orders for a vehicle (to suggest assignment)
-  const matchingOrders = useMemo(() => {
-    if (!assignVin) return [];
-    const v = vehicles.find((vv) => vv.vin === assignVin);
-    if (!v) return [];
-    return ddps
-      .filter((d) => d.status !== "done")
-      .flatMap((d) =>
-        d.items
-          .filter(
-            (it) =>
-              it.modelCode === v.modelCode &&
-              it.colorCode === v.colorCode &&
-              it.selectedVins.length < it.qty &&
-              !it.selectedVins.includes(v.vin),
-          )
-          .map((it) => ({ ddp: d, item: it })),
-      );
-  }, [assignVin, vehicles, ddps]);
+  // Extract unique options for dropdowns based on vehicles
+  const uniqueModels = useMemo(() => Array.from(new Set(vehicles.map((v) => v.modelCode))).filter(Boolean).sort(), [vehicles]);
+  const uniqueTypes = useMemo(() => Array.from(new Set(vehicles.filter((v) => !searchModel || v.modelCode === searchModel).map((v) => v.typeCode))).sort(), [vehicles, searchModel]);
+  const uniqueOptions = useMemo(() => Array.from(new Set(vehicles.filter((v) => (!searchModel || v.modelCode === searchModel) && (!searchType || v.typeCode === searchType)).map((v) => v.optionCode))).sort(), [vehicles, searchModel, searchType]);
+  const uniqueColors = useMemo(() => Array.from(new Set(vehicles.filter((v) => (!searchModel || v.modelCode === searchModel) && (!searchType || v.typeCode === searchType)).map((v) => v.colorCode))).filter(Boolean).sort(), [vehicles, searchModel, searchType]);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (!onStartGlobalSearch) return;
+    
+    // Chỉ submit khi có ít nhất 1 trường được điền
+    if (!searchModel && !searchType && !searchOption && !searchColor && !searchVin) {
+      alert("Vui lòng nhập ít nhất 1 thông tin để tra cứu.");
+      return;
+    }
+
+    onStartGlobalSearch({
+      modelCode: searchModel.trim(),
+      typeCode: searchType.trim(),
+      optionCode: searchOption.trim(),
+      colorCode: searchColor.trim(),
+      vin: searchVin.trim(),
+      modelName: searchModel.trim(), // For display
+      colorName: searchColor.trim(), // For display
+    });
+  }
 
   function handleFile(file: File) {
+    const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
     const reader = new FileReader();
-    reader.onload = () => {
-      const text = String(reader.result ?? "");
+    reader.onload = (e) => {
       try {
+        let text = "";
+        if (isExcel) {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          text = XLSX.utils.sheet_to_csv(worksheet);
+        } else {
+          text = String(e.target?.result ?? "");
+        }
+
         const ddp = parseDDPFile(file.name, text, vehicles);
         onUploadDDP(ddp);
         setUploadMsg(`✓ Đã nhập ${ddp.id} (${ddp.totalQty} xe, ${ddp.items.length} MTOC)`);
@@ -92,145 +95,82 @@ export function Sidebar({
         setTimeout(() => setUploadMsg(null), 5000);
       }
     };
-    reader.readAsText(file);
+    
+    if (isExcel) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file);
+    }
   }
-
-  const assignVehicle = vehicles.find((v) => v.vin === assignVin);
 
   return (
     <aside className="space-y-4">
+      {/* Global Search Form */}
       <section className="rounded-2xl border bg-card p-4 shadow-sm">
-        <h3 className="mb-2 text-sm font-semibold text-foreground">Tìm xe (VIN / MTOC / màu)</h3>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            type="text"
-            placeholder="VIN, model, màu, type..."
-            className="w-full rounded-md border bg-background py-2 pl-9 pr-8 text-sm outline-none ring-primary/40 focus:ring-2"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-muted"
-              aria-label="Xoá tìm kiếm"
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-foreground">Tra cứu xe độc lập</h3>
+          <p className="text-[10px] text-muted-foreground">Định vị nhanh xe trong kho (VD: theo VIN)</p>
         </div>
-
-        {searchQuery && (
-          <div className="mt-3 max-h-72 overflow-auto rounded-md border bg-background">
-            {searchResults.length === 0 ? (
-              <div className="p-3 text-center text-xs text-muted-foreground">
-                Không tìm thấy xe khớp "{searchQuery}"
-              </div>
-            ) : (
-              <ul className="divide-y">
-                {searchResults.map((v) => (
-                  <li key={v.vin}>
-                    <div className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted">
-                      <div
-                        className="min-w-0 flex-1 cursor-pointer"
-                        onClick={() => {
-                          if (v.zoneId && v.laneId && onNavigateToZoneLane) {
-                            onNavigateToZoneLane(v.zoneId, v.laneId);
-                          }
-                        }}
-                      >
-                        <div className="flex items-center gap-1.5 font-medium text-foreground">
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full border"
-                            style={{ backgroundColor: v.colorHex }}
-                          />
-                          {v.modelName}
-                          <span className="text-muted-foreground">· {v.colorName}</span>
-                        </div>
-                        <div className="font-mono text-[10px] text-muted-foreground">
-                          {v.vin}
-                        </div>
-                        {v.zoneId && v.laneId && (
-                          <div className="mt-0.5 flex items-center gap-1 text-[10px]">
-                            <MapPin className="h-2.5 w-2.5 text-violet-600" />
-                            <span className="font-medium text-violet-700">
-                              {v.zoneId} · Làn L{v.laneId.split("-L")[1]}
-                            </span>
-                          </div>
-                        )}
-                        {!v.zoneId && (
-                          <div className="mt-0.5 text-[10px] text-muted-foreground">
-                            {statusLabel(v.status)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 flex-col gap-1">
-                        <button
-                          type="button"
-                          onClick={() => onSelectVin(v.vin)}
-                          className="rounded border px-1.5 py-0.5 text-[10px] hover:bg-muted"
-                          title="Xem lịch sử"
-                        >
-                          <History className="h-3 w-3" />
-                        </button>
-                        {v.status === "in_zone" && (
-                          <button
-                            type="button"
-                            onClick={() => setAssignVin(assignVin === v.vin ? null : v.vin)}
-                            className={`rounded border px-1.5 py-0.5 text-[10px] hover:bg-muted ${assignVin === v.vin ? "bg-primary/10 border-primary" : ""}`}
-                            title="Ghép vào đơn hàng"
-                          >
-                            <Package className="h-3 w-3" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    {/* Assign to order panel */}
-                    {assignVin === v.vin && assignVehicle && (
-                      <div className="border-t bg-violet-50 px-3 py-2">
-                        <div className="mb-1 text-[10px] font-semibold text-violet-800">
-                          Ghép xe này vào đơn hàng:
-                        </div>
-                        {matchingOrders.length === 0 ? (
-                          <div className="text-[10px] text-muted-foreground">
-                            Không có đơn hàng nào cần {assignVehicle.modelName} · {assignVehicle.colorName}
-                          </div>
-                        ) : (
-                          <div className="space-y-1">
-                            {matchingOrders.map(({ ddp: d, item: it }) => (
-                              <button
-                                key={`${d.id}-${it.id}`}
-                                type="button"
-                                onClick={() => {
-                                  onOpenDDP(d.id);
-                                  setAssignVin(null);
-                                }}
-                                className="flex w-full items-center justify-between rounded border bg-white px-2 py-1.5 text-[10px] hover:bg-violet-100"
-                              >
-                                <div>
-                                  <span className="font-semibold text-foreground">{d.id}</span>
-                                  <span className="ml-1 text-muted-foreground">· {d.carrier}</span>
-                                </div>
-                                <span className="text-violet-700">
-                                  Cần {it.qty - it.selectedVins.length} xe nữa
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="border-t bg-muted/40 px-3 py-1.5 text-[10px] text-muted-foreground">
-              {searchResults.length} kết quả {searchResults.length === 30 && "(hiển thị 30 đầu)"}
-            </div>
+        <form onSubmit={handleSearch} className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={searchModel}
+              onChange={(e) => setSearchModel(e.target.value)}
+              className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary"
+            >
+              <option value="">-- Model --</option>
+              {uniqueModels.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={searchColor}
+              onChange={(e) => setSearchColor(e.target.value)}
+              className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary"
+            >
+              <option value="">-- Color --</option>
+              {uniqueColors.map((c) => {
+                const colorDef = COLORS.find(col => col.code === c);
+                return <option key={c} value={c}>{c} {colorDef ? `(${colorDef.name})` : ""}</option>;
+              })}
+            </select>
           </div>
-        )}
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary"
+            >
+              <option value="">-- Type --</option>
+              {uniqueTypes.map((t) => (
+                <option key={t} value={t}>{t || "(Trống)"}</option>
+              ))}
+            </select>
+            <select
+              value={searchOption}
+              onChange={(e) => setSearchOption(e.target.value)}
+              className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary"
+            >
+              <option value="">-- Option --</option>
+              {uniqueOptions.map((o) => (
+                <option key={o} value={o}>{o || "(Trống)"}</option>
+              ))}
+            </select>
+          </div>
+          <input
+            type="text"
+            placeholder="Tìm theo số VIN..."
+            value={searchVin}
+            onChange={(e) => setSearchVin(e.target.value)}
+            className="w-full rounded-md border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary"
+          />
+          <button
+            type="submit"
+            className="w-full rounded-md bg-foreground px-3 py-1.5 text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
+          >
+            Tìm trên Map
+          </button>
+        </form>
       </section>
 
       <section className="rounded-2xl border bg-card p-4 shadow-sm">
@@ -238,7 +178,7 @@ export function Sidebar({
         <input
           ref={fileRef}
           type="file"
-          accept=".csv,.tsv,.txt"
+          accept=".csv,.tsv,.txt,.xlsx,.xls"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) handleFile(f);
@@ -258,7 +198,7 @@ export function Sidebar({
           <div className="mt-2 rounded-md bg-muted p-2 text-[11px]">{uploadMsg}</div>
         )}
         <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          .csv / .tsv (UTF-8 hoặc UTF-16). Cột:{" "}
+          Hỗ trợ: .xlsx, .csv (UTF-8). Cột:{" "}
           <code className="rounded bg-muted px-1">MODEL_CODE</code>,{" "}
           <code className="rounded bg-muted px-1">TYPE_CODE</code>,{" "}
           <code className="rounded bg-muted px-1">COLOR_CODE</code>,{" "}
@@ -347,13 +287,12 @@ function parseDDPFile(fileName: string, text: string, vehicles: Vehicle[]): DDP 
 
   for (let i = 1; i < lines.length; i++) {
     const cells = lines[i].split(delim).map((c) => c.trim().replace(/^"|"$/g, ""));
-    const modelRaw = (cells[iModel] ?? "").trim();
+    const modelCode = (cells[iModel] ?? "").trim();
+    const typeCode = (cells[iType] ?? "").trim();
+    const optionCode = iOption >= 0 ? (cells[iOption] ?? "").trim() : "";
     const colorCode = (cells[iColor] ?? "").trim();
     const qty = parseInt(cells[iQty] ?? "0", 10) || 0;
-    if (!modelRaw || !colorCode || qty <= 0) continue;
-    const [modelCode, typeFromModel] = modelRaw.split(/\s+/);
-    const typeCode = (cells[iType] ?? typeFromModel ?? "").trim();
-    const optionCode = iOption >= 0 ? (cells[iOption] ?? "").trim() : "";
+    if (!modelCode || !colorCode || qty <= 0) continue;
     if (iTrans >= 0 && cells[iTrans]) carriers.add(cells[iTrans]);
 
     const key = `${modelCode}|${typeCode}|${optionCode}|${colorCode}`;

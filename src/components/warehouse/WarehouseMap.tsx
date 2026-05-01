@@ -1,16 +1,16 @@
-import { Boxes, Wrench } from "lucide-react";
-import type { Vehicle, Zone } from "@/lib/warehouse/types";
+import { Boxes, Wrench, Sparkles, X, Search } from "lucide-react";
+import type { Vehicle, Zone, PickContext } from "@/lib/warehouse/types";
 import { fillColorBgSoft, getFillRatio, getFillTier } from "@/lib/warehouse/fillColors";
 
 interface ZoneCardProps {
   zone: Zone;
   vehiclesInZone: number;
+  matches: number;
   onClick: () => void;
   isActive: boolean;
-  highlightCount?: number; // number of search-matched vehicles in this zone
 }
 
-function ZoneCard({ zone, vehiclesInZone, onClick, isActive, highlightCount = 0 }: ZoneCardProps) {
+function ZoneCard({ zone, vehiclesInZone, matches, onClick, isActive }: ZoneCardProps) {
   const isMaint = zone.status === "maintenance";
   const isFull = zone.status === "full";
   const ratio = getFillRatio(zone, vehiclesInZone);
@@ -29,12 +29,12 @@ function ZoneCard({ zone, vehiclesInZone, onClick, isActive, highlightCount = 0 
         isActive ? "border-white ring-2 ring-white/60" : "border-transparent"
       }`}
     >
-      {/* Red dot indicator for search results */}
-      {highlightCount > 0 && (
-        <div className="absolute -right-1.5 -top-1.5 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-lg animate-pulse">
-          {highlightCount}
+      {matches > 0 && (
+        <div className="absolute -right-2 -top-2 z-10 flex h-6 min-w-[24px] animate-pulse items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white shadow-lg ring-2 ring-white">
+          {matches}
         </div>
       )}
+
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0">
           <div className="flex items-center gap-1 text-sm font-bold text-white">
@@ -72,34 +72,97 @@ interface WarehouseMapProps {
   vehicles: Vehicle[];
   activeZoneId: string | null;
   onZoneClick: (zoneId: string) => void;
-  highlightedZones?: Map<string, number>; // zoneId -> count of matching vehicles
+  activePickLine?: PickContext | null;
+  onClearPick?: () => void;
+  onAutoSelect?: (ddpId: string, lineId: string) => void;
 }
 
-export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, highlightedZones }: WarehouseMapProps) {
+export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, activePickLine, onClearPick, onAutoSelect }: WarehouseMapProps) {
   const countByZone = new Map<string, number>();
+  const matchesByZone = new Map<string, number>();
+
+  let totalMatches = 0;
+
   vehicles.forEach((v) => {
     if (v.status === "in_zone" && v.zoneId) {
       countByZone.set(v.zoneId, (countByZone.get(v.zoneId) ?? 0) + 1);
+      
+      const hasFilter = activePickLine && (
+        activePickLine.modelCode || activePickLine.typeCode || activePickLine.optionCode || activePickLine.colorCode || activePickLine.vin
+      );
+
+      if (hasFilter) {
+        const matchModel = !activePickLine.modelCode || v.modelCode.toLowerCase().includes(activePickLine.modelCode.toLowerCase());
+        const matchType = !activePickLine.typeCode || v.typeCode.toLowerCase().includes(activePickLine.typeCode.toLowerCase());
+        const matchOption = !activePickLine.optionCode || (v.optionCode && v.optionCode.toLowerCase().includes(activePickLine.optionCode.toLowerCase()));
+        const matchColor = !activePickLine.colorCode || v.colorCode.toLowerCase().includes(activePickLine.colorCode.toLowerCase());
+        const matchVin = !activePickLine.vin || v.vin.toLowerCase().includes(activePickLine.vin.toLowerCase());
+
+        if (matchModel && matchType && matchOption && matchColor && matchVin) {
+          matchesByZone.set(v.zoneId, (matchesByZone.get(v.zoneId) ?? 0) + 1);
+          totalMatches++;
+        }
+      }
     }
   });
 
   const z = (id: string) => zones.find((zz) => zz.id === id)!;
   const cnt = (id: string) => countByZone.get(id) ?? 0;
+  const mch = (id: string) => matchesByZone.get(id) ?? 0;
 
   const renderZone = (id: string) => (
     <ZoneCard
       zone={z(id)}
       vehiclesInZone={cnt(id)}
+      matches={mch(id)}
       onClick={() => onZoneClick(id)}
       isActive={activeZoneId === id}
-      highlightCount={highlightedZones?.get(id) ?? 0}
     />
   );
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
+    <div className="relative rounded-2xl border bg-card p-4 shadow-sm">
+      {activePickLine && (
+        <div className="absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-4 rounded-full border bg-white/95 p-2 px-4 shadow-lg backdrop-blur">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+              <Search className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-foreground">
+                {activePickLine.isGlobalSearch ? "Tra cứu xe" : "Đang tìm:"} {activePickLine.modelName ? `${activePickLine.modelName} · ` : ""}{activePickLine.colorName || activePickLine.vin || "Tùy chỉnh"}
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {activePickLine.qty ? `Cần ${activePickLine.qty} xe · ` : ""}Có {totalMatches} xe trên layout
+              </div>
+            </div>
+          </div>
+          <div className="h-6 w-px bg-border" />
+          <div className="flex items-center gap-2">
+            {!activePickLine.isGlobalSearch && (
+              <button
+                type="button"
+                onClick={() => activePickLine.ddpId && activePickLine.lineId && onAutoSelect?.(activePickLine.ddpId, activePickLine.lineId)}
+                className="flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-violet-700"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Auto Pick
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClearPick}
+              className="flex items-center gap-1 rounded-full border bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
+            >
+              <X className="h-3.5 w-3.5" />
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
+        <div className={activePickLine ? "opacity-30" : ""}>
           <p className="text-sm text-muted-foreground">
             Click <span className="font-semibold text-foreground">zone</span> → chọn{" "}
             <span className="font-semibold text-foreground">làn</span> → xem chi tiết xe ·{" "}
@@ -109,16 +172,16 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, highl
         <Legend />
       </div>
 
-      <div className="rounded-xl bg-blue-600 p-3">
+      <div className={`rounded-xl bg-blue-600 p-3 transition-opacity duration-300 ${activePickLine ? "opacity-95" : ""}`}>
         {/* Top block: A12 (tall) | Elev | (A13 / A11+A10) | Elev | DropSpare */}
         <div className="grid grid-cols-[1.3fr_48px_2.4fr_48px_120px] gap-2">
           {/* Left tall: A12 */}
           <div className="row-span-2 min-h-[180px]">{renderZone("A12")}</div>
-          <FixedCell label="Elevator" tone="violet" vertical className="row-span-2" />
+          <FixedCell label="Thang máy" tone="violet" vertical className="row-span-2" />
           {/* Middle top: A13 */}
           <div className="min-h-[88px]">{renderZone("A13")}</div>
-          <FixedCell label="Elevator" tone="violet" vertical className="row-span-2" />
-          <FixedCell label="Drop spare parts & wait for elevator" tone="cyan" small className="row-span-2" />
+          <FixedCell label="Thang máy" tone="violet" vertical className="row-span-2" />
+          <FixedCell label="Khu chờ thang & linh kiện" tone="cyan" small className="row-span-2" />
           {/* Middle bottom: A11 + A10 */}
           <div className="grid min-h-[88px] grid-cols-[1fr_1.4fr] gap-2">
             {renderZone("A11")}
@@ -128,19 +191,19 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, highl
 
         {/* Row 3: Office | A9 | A8 | A7 | Packing */}
         <div className="mt-2 grid grid-cols-[120px_0.55fr_1.4fr_1.6fr_100px] gap-2">
-          <FixedCell label="Office" tone="pink" />
+          <FixedCell label="Văn phòng" tone="pink" />
           {renderZone("A9")}
           {renderZone("A8")}
           {renderZone("A7")}
-          <FixedCell label="Packing line" tone="pink" small />
+          <FixedCell label="Khu đóng gói" tone="pink" small />
         </div>
 
         {/* Row 4: A4 | Elev | A5 | Elev | A6 */}
         <div className="mt-2 grid grid-cols-[0.8fr_48px_2fr_48px_1fr] gap-2">
           {renderZone("A4")}
-          <FixedCell label="Elevator" tone="violet" vertical />
+          <FixedCell label="Thang máy" tone="violet" vertical />
           {renderZone("A5")}
-          <FixedCell label="Elevator" tone="violet" vertical />
+          <FixedCell label="Thang máy" tone="violet" vertical />
           {renderZone("A6")}
         </div>
 
@@ -153,7 +216,7 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, highl
 
         {/* Bottom: Stairs */}
         <div className="mt-2">
-          <FixedCell label="Stairs" tone="pink" small />
+          <FixedCell label="Cầu thang" tone="pink" small />
         </div>
       </div>
     </div>
@@ -162,51 +225,58 @@ export function WarehouseMap({ zones, vehicles, activeZoneId, onZoneClick, highl
 
 function FixedCell({
   label,
-  tone = "slate",
-  small,
+  tone,
   vertical,
+  small,
   className = "",
 }: {
-  label: string;
-  tone?: "slate" | "pink" | "cyan" | "yellow" | "violet";
-  small?: boolean;
+  label: React.ReactNode;
+  tone: "pink" | "violet" | "cyan";
   vertical?: boolean;
+  small?: boolean;
   className?: string;
 }) {
-  const toneCls: Record<string, string> = {
-    slate: "bg-slate-700 text-white",
-    pink: "bg-pink-300 text-pink-950",
-    cyan: "bg-sky-200 text-sky-950",
-    yellow: "bg-yellow-200 text-yellow-900",
-    violet: "bg-violet-300 text-violet-950",
+  const tones = {
+    pink: "bg-pink-400/80 text-pink-950",
+    violet: "bg-violet-400 text-violet-950",
+    cyan: "bg-cyan-600 text-cyan-50",
   };
   return (
     <div
-      className={`flex min-h-[56px] items-center justify-center rounded-lg p-2 text-center font-semibold ${toneCls[tone]} ${
-        small ? "text-[11px] leading-tight" : "text-xs"
-      } ${vertical ? "[writing-mode:vertical-rl] rotate-180" : ""} ${className}`}
+      className={`flex items-center justify-center rounded-lg ${tones[tone]} ${
+        vertical ? "writing-vertical-rl" : ""
+      } ${small ? "p-1.5 text-[10px]" : "p-2.5 text-xs font-medium"} ${className}`}
     >
-      {label}
+      <span className="text-center">{label}</span>
     </div>
   );
 }
 
 function Legend() {
-  const items: Array<{ label: string; cls: string }> = [
-    { label: "≤40%", cls: "bg-emerald-300" },
-    { label: "41–75%", cls: "bg-emerald-500" },
-    { label: "76–99%", cls: "bg-emerald-700" },
-    { label: "Full", cls: "bg-emerald-950" },
-    { label: "Bảo trì", cls: "bg-violet-500" },
-  ];
   return (
-    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      {items.map((it) => (
-        <div key={it.label} className="flex items-center gap-1">
-          <div className={`h-3 w-5 rounded ${it.cls}`} />
-          <span>{it.label}</span>
+    <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-muted-foreground">
+      <div className="flex items-center gap-1.5">
+        <div className="h-3 w-3 rounded-sm bg-emerald-600" />
+        <span>Trống &gt;50%</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="h-3 w-3 rounded-sm bg-emerald-700" />
+        <span>Trống 20-50%</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="h-3 w-3 rounded-sm bg-emerald-900" />
+        <span>Sắp đầy</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="h-3 w-3 border border-border bg-[#0f172a]" />
+        <span>Đầy (100%)</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="flex h-3 w-3 items-center justify-center rounded-sm bg-violet-500">
+          <Wrench className="h-2 w-2 text-white" />
         </div>
-      ))}
+        <span>Bảo trì</span>
+      </div>
     </div>
   );
 }

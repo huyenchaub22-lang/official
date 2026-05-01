@@ -1,14 +1,14 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useWarehouseState } from "@/lib/warehouse/useWarehouseState";
 import { totalCapacity } from "@/lib/warehouse/mockData";
+import type { PickContext } from "@/lib/warehouse/types";
 import { WarehouseMap } from "@/components/warehouse/WarehouseMap";
 import { ZoneDetailPanel } from "@/components/warehouse/ZoneDetailPanel";
 import { VehicleHistoryDrawer } from "@/components/warehouse/VehicleHistoryDrawer";
 import { DDPDetailPanel } from "@/components/warehouse/DDPDetailPanel";
 import { Sidebar } from "@/components/warehouse/Sidebar";
 import { SpecialAreasPanel } from "@/components/warehouse/SpecialAreasPanel";
-import { ZoneDistribution } from "@/components/warehouse/ZoneDistribution";
 import hondaLogo from "@/assets/honda-logo.png";
 
 export const Route = createFileRoute("/")({
@@ -30,7 +30,7 @@ function WarehousePage() {
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
   const [activeDDPId, setActiveDDPId] = useState<string | null>(null);
   const [historyVin, setHistoryVin] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activePickLine, setActivePickLine] = useState<PickContext | null>(null);
 
   const inLayoutCount = state.vehicles.filter((v) => v.status === "in_zone").length;
   const freeSlots = totalCapacity - inLayoutCount;
@@ -50,26 +50,7 @@ function WarehousePage() {
     [activeZone, state.vehicles],
   );
 
-  // Search highlighting: compute which zones have matching vehicles
-  const highlightedZones = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return undefined;
-    const map = new Map<string, number>();
-    state.vehicles.forEach((v) => {
-      if (v.status !== "in_zone" || !v.zoneId) return;
-      const match =
-        v.vin.toLowerCase().includes(q) ||
-        v.modelCode.toLowerCase().includes(q) ||
-        v.modelName.toLowerCase().includes(q) ||
-        v.colorCode.toLowerCase().includes(q) ||
-        v.colorName.toLowerCase().includes(q) ||
-        v.typeCode.toLowerCase().includes(q);
-      if (match) {
-        map.set(v.zoneId, (map.get(v.zoneId) ?? 0) + 1);
-      }
-    });
-    return map.size > 0 ? map : undefined;
-  }, [searchQuery, state.vehicles]);
+
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -106,10 +87,8 @@ function WarehousePage() {
             vehicles={state.vehicles}
             onOpenDDP={(id) => setActiveDDPId(id)}
             activeDDPId={activeDDPId}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            onSelectVin={(vin) => setHistoryVin(vin)}
             onUploadDDP={state.addDDP}
+            onStartGlobalSearch={(ctx) => setActivePickLine({ ...ctx, isGlobalSearch: true })}
           />
 
           <div className="space-y-5">
@@ -118,17 +97,12 @@ function WarehousePage() {
               vehicles={state.vehicles}
               activeZoneId={activeZoneId}
               onZoneClick={(id) => setActiveZoneId(id)}
-              highlightedZones={highlightedZones}
+              activePickLine={activePickLine}
+              onClearPick={() => setActivePickLine(null)}
+              onAutoSelect={state.autoSelect}
             />
 
             <SpecialAreasPanel areas={state.specialAreas} />
-
-            <ZoneDistribution
-              zones={state.zones}
-              vehicles={state.vehicles}
-              onZoneClick={(id) => setActiveZoneId(id)}
-              activeZoneId={activeZoneId}
-            />
           </div>
         </div>
       </main>
@@ -139,15 +113,16 @@ function WarehousePage() {
         vehiclesInZone={vehiclesInActiveZone}
         onClose={() => setActiveZoneId(null)}
         onShowHistory={(vin) => setHistoryVin(vin)}
+        activePickLine={activePickLine}
+        onToggleVin={state.toggleSelectVin}
       />
       <DDPDetailPanel
         ddp={activeDDP}
         vehicles={state.vehicles}
         onClose={() => setActiveDDPId(null)}
-        onToggleVin={state.toggleSelectVin}
-        onClearLine={state.clearSelection}
-        onAutoSelect={state.autoSelect}
         onComplete={state.completeDDP}
+        activePickLine={activePickLine}
+        onStartPick={setActivePickLine}
       />
       <VehicleHistoryDrawer vehicle={historyVehicle} onClose={() => setHistoryVin(null)} />
     </div>
