@@ -377,14 +377,26 @@ function PickTab({
                 {vs.map((v, idx) => {
                   const isSelected = activeLine.selectedVins.includes(v.vin);
                   return (
-                    <li key={v.vin} className={`flex items-center justify-between px-3 py-2 ${isSelected ? "bg-emerald-50" : ""}`}>
-                      <div className="flex items-center gap-2">
+                    <li key={v.vin} className={`flex items-center justify-between px-3 py-2.5 ${isSelected ? "bg-emerald-50" : ""}`}>
+                      <div className="flex items-center gap-2.5">
                         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                           #{idx + 1}
                         </span>
+                        <span
+                          className="inline-block h-3.5 w-3.5 rounded-full border"
+                          style={{ backgroundColor: v.colorHex }}
+                        />
                         <div>
-                          <div className="font-mono text-xs text-foreground">{v.vin}</div>
-                          <div className="text-[10px] text-muted-foreground">Nhập {v.arrivedAt.split(" ")[1]}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs font-semibold text-foreground">{v.vin}</span>
+                            <span className="text-[10px] text-muted-foreground">· {v.modelName}</span>
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">
+                            {v.modelCode} {v.typeCode} · {v.colorName} ({v.colorCode}) · Nhập {v.arrivedAt.split(" ")[1]}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">
+                            Vị trí: <span className="font-medium text-foreground">{v.zoneId}/L{v.laneId?.split("-L")[1]}</span>
+                          </div>
                         </div>
                       </div>
                       <button
