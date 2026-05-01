@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, History, Search, Upload, X } from "lucide-react";
+import { FileSpreadsheet, History, MapPin, Package, Search, Upload, X } from "lucide-react";
 import type { DDP, Vehicle } from "@/lib/warehouse/types";
 import { lookupColor, findZoneForVehicleType } from "@/lib/warehouse/mockData";
 
@@ -12,6 +12,7 @@ interface SidebarProps {
   setSearchQuery: (q: string) => void;
   onSelectVin: (vin: string) => void;
   onUploadDDP: (ddp: DDP) => void;
+  onNavigateToZoneLane?: (zoneId: string, laneId: string) => void;
 }
 
 const STATUS_LABEL: Record<DDP["status"], string> = {
@@ -35,9 +36,11 @@ export function Sidebar({
   setSearchQuery,
   onSelectVin,
   onUploadDDP,
+  onNavigateToZoneLane,
 }: SidebarProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
+  const [assignVin, setAssignVin] = useState<string | null>(null);
 
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -55,6 +58,26 @@ export function Sidebar({
       .slice(0, 30);
   }, [searchQuery, vehicles]);
 
+  // Find matching orders for a vehicle (to suggest assignment)
+  const matchingOrders = useMemo(() => {
+    if (!assignVin) return [];
+    const v = vehicles.find((vv) => vv.vin === assignVin);
+    if (!v) return [];
+    return ddps
+      .filter((d) => d.status !== "done")
+      .flatMap((d) =>
+        d.items
+          .filter(
+            (it) =>
+              it.modelCode === v.modelCode &&
+              it.colorCode === v.colorCode &&
+              it.selectedVins.length < it.qty &&
+              !it.selectedVins.includes(v.vin),
+          )
+          .map((it) => ({ ddp: d, item: it })),
+      );
+  }, [assignVin, vehicles, ddps]);
+
   function handleFile(file: File) {
     const reader = new FileReader();
     reader.onload = () => {
@@ -71,6 +94,8 @@ export function Sidebar({
     };
     reader.readAsText(file);
   }
+
+  const assignVehicle = vehicles.find((v) => v.vin === assignVin);
 
   return (
     <aside className="space-y-4">
@@ -107,12 +132,15 @@ export function Sidebar({
               <ul className="divide-y">
                 {searchResults.map((v) => (
                   <li key={v.vin}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectVin(v.vin)}
-                      className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-muted"
-                    >
-                      <div className="min-w-0">
+                    <div className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted">
+                      <div
+                        className="min-w-0 flex-1 cursor-pointer"
+                        onClick={() => {
+                          if (v.zoneId && v.laneId && onNavigateToZoneLane) {
+                            onNavigateToZoneLane(v.zoneId, v.laneId);
+                          }
+                        }}
+                      >
                         <div className="flex items-center gap-1.5 font-medium text-foreground">
                           <span
                             className="inline-block h-2.5 w-2.5 rounded-full border"
@@ -122,11 +150,78 @@ export function Sidebar({
                           <span className="text-muted-foreground">· {v.colorName}</span>
                         </div>
                         <div className="font-mono text-[10px] text-muted-foreground">
-                          {v.vin} · {v.zoneId ? `${v.zoneId}/${v.laneId?.split("-").pop()}` : statusLabel(v.status)}
+                          {v.vin}
                         </div>
+                        {v.zoneId && v.laneId && (
+                          <div className="mt-0.5 flex items-center gap-1 text-[10px]">
+                            <MapPin className="h-2.5 w-2.5 text-violet-600" />
+                            <span className="font-medium text-violet-700">
+                              {v.zoneId} · Làn L{v.laneId.split("-L")[1]}
+                            </span>
+                          </div>
+                        )}
+                        {!v.zoneId && (
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">
+                            {statusLabel(v.status)}
+                          </div>
+                        )}
                       </div>
-                      <History className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    </button>
+                      <div className="flex shrink-0 flex-col gap-1">
+                        <button
+                          type="button"
+                          onClick={() => onSelectVin(v.vin)}
+                          className="rounded border px-1.5 py-0.5 text-[10px] hover:bg-muted"
+                          title="Xem lịch sử"
+                        >
+                          <History className="h-3 w-3" />
+                        </button>
+                        {v.status === "in_zone" && (
+                          <button
+                            type="button"
+                            onClick={() => setAssignVin(assignVin === v.vin ? null : v.vin)}
+                            className={`rounded border px-1.5 py-0.5 text-[10px] hover:bg-muted ${assignVin === v.vin ? "bg-primary/10 border-primary" : ""}`}
+                            title="Ghép vào đơn hàng"
+                          >
+                            <Package className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {/* Assign to order panel */}
+                    {assignVin === v.vin && assignVehicle && (
+                      <div className="border-t bg-violet-50 px-3 py-2">
+                        <div className="mb-1 text-[10px] font-semibold text-violet-800">
+                          Ghép xe này vào đơn hàng:
+                        </div>
+                        {matchingOrders.length === 0 ? (
+                          <div className="text-[10px] text-muted-foreground">
+                            Không có đơn hàng nào cần {assignVehicle.modelName} · {assignVehicle.colorName}
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            {matchingOrders.map(({ ddp: d, item: it }) => (
+                              <button
+                                key={`${d.id}-${it.id}`}
+                                type="button"
+                                onClick={() => {
+                                  onOpenDDP(d.id);
+                                  setAssignVin(null);
+                                }}
+                                className="flex w-full items-center justify-between rounded border bg-white px-2 py-1.5 text-[10px] hover:bg-violet-100"
+                              >
+                                <div>
+                                  <span className="font-semibold text-foreground">{d.id}</span>
+                                  <span className="ml-1 text-muted-foreground">· {d.carrier}</span>
+                                </div>
+                                <span className="text-violet-700">
+                                  Cần {it.qty - it.selectedVins.length} xe nữa
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -229,7 +324,6 @@ function statusLabel(s: Vehicle["status"]) {
 
 // Parse a CSV/TSV DDP file into a DDP object.
 function parseDDPFile(fileName: string, text: string, vehicles: Vehicle[]): DDP {
-  // detect delimiter
   const firstLine = text.split(/\r?\n/)[0] ?? "";
   const delim = firstLine.includes("\t") ? "\t" : ",";
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -262,7 +356,6 @@ function parseDDPFile(fileName: string, text: string, vehicles: Vehicle[]): DDP 
     const optionCode = iOption >= 0 ? (cells[iOption] ?? "").trim() : "";
     if (iTrans >= 0 && cells[iTrans]) carriers.add(cells[iTrans]);
 
-    // Gộp đúng theo MTOC: model + type + option + color, cộng dồn qty thực tế trong file.
     const key = `${modelCode}|${typeCode}|${optionCode}|${colorCode}`;
     const cur = map.get(key);
     if (cur) cur.qty += qty;
@@ -274,7 +367,6 @@ function parseDDPFile(fileName: string, text: string, vehicles: Vehicle[]): DDP 
   const carrierCode = Array.from(carriers)[0] ?? "UPLOAD";
   const id = `DDP-${carrierCode}-${Date.now().toString().slice(-4)}`;
 
-  // Map đúng tên/mã/hex màu, và tìm zone gợi ý theo tồn kho thật.
   const items = Array.from(map.values()).map((a, idx2) => {
     const color = lookupColor(a.colorCode);
     const suggestedZoneId =
