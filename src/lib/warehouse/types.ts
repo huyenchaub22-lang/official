@@ -1,11 +1,6 @@
 export type FillLevel = "low" | "medium" | "high" | "full";
 
-export type VehicleStatus =
-  | "in_zone"
-  | "in_ng"
-  | "in_maintenance"
-  | "in_receiving"
-  | "picked";
+export type VehicleStatus = "in_zone" | "in_ng" | "in_maintenance" | "in_receiving" | "picked";
 
 export type ZoneStatus = "normal" | "full" | "maintenance";
 
@@ -48,7 +43,6 @@ export interface Zone {
   lanes: Lane[];
   modelNames: string[];
   status: ZoneStatus;
-  // Maintenance metadata (only when status === "maintenance")
   maintenanceStart?: string;
   maintenanceEnd?: string;
   maintenanceReason?: string;
@@ -100,6 +94,113 @@ export interface PickContext {
   modelName?: string;
   colorName?: string;
   vin?: string;
-  qty?: number; // total needed
+  qty?: number;
   isGlobalSearch?: boolean;
+}
+
+// KI (kiem ke) types.
+// A MTOC is one exact model/type/option/color combination. One phieu can only
+// represent one MTOC; quantity is the system count of all matching vehicles.
+
+export type KIPeriod = "DAY" | "MONTH" | "YEAR";
+
+export interface KILocationCount {
+  location: string;
+  qty: number;
+}
+
+export interface KIFrameRecord {
+  vin: string;
+  status: VehicleStatus;
+  location: string;
+  zoneId?: string;
+  laneId?: string;
+  arrivedAt: string;
+  lastHistoryAt: string;
+}
+
+export interface KISnapshotItem {
+  mtocKey: string; // `${modelCode}|${typeCode}|${optionCode}|${colorCode}`
+  modelCode: string;
+  modelName: string;
+  typeCode: string;
+  optionCode: string;
+  colorCode: string;
+  colorName: string;
+  colorHex: string;
+  primaryLocation: string;
+  locationCounts: KILocationCount[];
+  frameRecords: KIFrameRecord[];
+  frameNumbers: string[];
+  qty: number;
+}
+
+export interface KISnapshot {
+  id: string;
+  createdAt: string;
+  period: KIPeriod;
+  periodLabel: string;
+  totalQty: number;
+  items: KISnapshotItem[];
+}
+
+export type PhieuStatus = "CHUA_KIEM_TRA" | "DANG_KIEM_TRA" | "DA_CHOT";
+
+export type KetQuaKiemTra = "KHOP" | "KHONG_KHOP";
+
+export interface KiemTraThucDiaItem {
+  vin: string;
+  systemFound: boolean;
+  belongsToPhieu: boolean;
+  expectedLocation: string | null;
+  currentLocation: string | null;
+  zoneId?: string;
+  laneId?: string;
+  currentStatus: VehicleStatus | null;
+  arrivedAt: string | null;
+  lastHistoryAt: string | null;
+  ketQua: KetQuaKiemTra | null;
+  ghiChu: string;
+  checkedAt: string | null;
+}
+
+export type LoaiChenhLech = "THIEU" | "THUA";
+
+export interface PhuLucDieuChinh {
+  loaiChenhLech: LoaiChenhLech;
+  soLuong: number;
+  lyDo: string;
+  nguoiLap: string;
+  ghiChu: string;
+  createdAt: string;
+  soLuongSauDieuChinh: number;
+}
+
+export interface PhieuKiemKe {
+  phieuNo: string;
+  snapshotId: string;
+  mtocKey: string;
+  modelCode: string;
+  modelName: string;
+  typeCode: string;
+  optionCode: string;
+  colorCode: string;
+  colorName: string;
+  colorHex: string;
+  primaryLocation: string;
+  locationCounts: KILocationCount[];
+  frameRecords: KIFrameRecord[];
+  frameNumbers: string[];
+  maBlock: string;
+  systemQty: number;
+  nguoiDem: string;
+  nguoiXacNhan: string;
+  auditorName: string;
+  soLuongThanhTra: number | null;
+  inspectionList: KiemTraThucDiaItem[];
+  adjustmentAppendix: PhuLucDieuChinh | null;
+  note: string;
+  status: PhieuStatus;
+  createdAt: string;
+  confirmedAt: string | null;
 }

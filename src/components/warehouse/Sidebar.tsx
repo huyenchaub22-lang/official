@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, Upload } from "lucide-react";
+import { FileSpreadsheet, Upload, ClipboardCheck, Package } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { DDP, Vehicle } from "@/lib/warehouse/types";
 import { lookupColor, findZoneForVehicleType, COLORS } from "@/lib/warehouse/mockData";
+import type { KIState } from "@/lib/warehouse/useKIState";
+import { KISidebar } from "./KISidebar";
 
 interface SidebarProps {
   ddps: DDP[];
@@ -11,6 +13,9 @@ interface SidebarProps {
   activeDDPId: string | null;
   onUploadDDP: (ddp: DDP) => void;
   onStartGlobalSearch?: (ctx: { modelCode?: string; typeCode?: string; optionCode?: string; colorCode?: string; vin?: string; modelName?: string; colorName?: string; }) => void;
+  kiState?: KIState;
+  onOpenPhieu?: (phieuNo: string) => void;
+  onOpenDashboard?: () => void;
 }
 
 const STATUS_LABEL: Record<DDP["status"], string> = {
@@ -32,7 +37,11 @@ export function Sidebar({
   activeDDPId,
   onUploadDDP,
   onStartGlobalSearch,
+  kiState,
+  onOpenPhieu,
+  onOpenDashboard,
 }: SidebarProps) {
+  const [activeTab, setActiveTab] = useState<"ddp" | "ki">("ddp");
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
@@ -105,6 +114,50 @@ export function Sidebar({
 
   return (
     <aside className="space-y-4">
+      {/* Tab Toggle */}
+      <div className="flex rounded-xl border bg-card p-1 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setActiveTab("ddp")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+            activeTab === "ddp"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Package className="h-3.5 w-3.5" />
+          Đơn hàng
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("ki")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+            activeTab === "ki"
+              ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ClipboardCheck className="h-3.5 w-3.5" />
+          Kiểm kê
+          {kiState?.kiMode && (
+            <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-bold">LIVE</span>
+          )}
+        </button>
+      </div>
+
+      {/* KI Tab Content */}
+      {activeTab === "ki" && kiState && (
+        <KISidebar
+          kiState={kiState}
+          vehicles={vehicles}
+          onOpenPhieu={onOpenPhieu ?? (() => {})}
+          onOpenDashboard={onOpenDashboard ?? (() => {})}
+        />
+      )}
+
+      {/* DDP Tab Content */}
+      {activeTab === "ddp" && (
+        <>
       {/* Global Search Form */}
       <section className="rounded-2xl border bg-card p-4 shadow-sm">
         <div className="mb-3">
@@ -248,6 +301,8 @@ export function Sidebar({
           })}
         </div>
       </section>
+        </>
+      )}
     </aside>
   );
 }
